@@ -68,7 +68,8 @@ int main(int argc, char *argv[]) {
             OMPI_Comm_shrink(world, &tmp);
             world = tmp;
         } else if (MPI_SUCCESS != rc) {
-            printf("%d - %d\n", rank, rc);
+            printf("%d - unknown error %d\n", rank, rc);
+            MPI_Abort( MPI_COMM_WORLD, rc );
         } else {
             successes++;
         }

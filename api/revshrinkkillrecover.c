@@ -23,25 +23,23 @@
 
 static char errstr[MPI_MAX_ERROR_STRING];
 
-void recover(MPI_Comm **comm, int rank) {
+void recover(MPI_Comm *comm, int rank) {
     int nprocs, *errcodes, rc, old_size, new_size, errstrlen;
     char command[] = "./revshrinkkillrecover";
-    MPI_Comm intercomm, tmp_comm, *new_intra;
-    
-    new_intra = (MPI_Comm *) malloc(sizeof(MPI_Comm));
+    MPI_Comm intercomm, tmp_comm, new_intra;
     
 #if 0
-    OMPI_Comm_shrink(**comm, new_intra);
+    OMPI_Comm_shrink(*comm, &new_intra);
     *comm = new_intra;
     return;
 #else
     printf("%d - Shrinking communicator\n", rank);
 
     /* Shrink the old communicator */
-    OMPI_Comm_shrink(**comm, &tmp_comm);
+    OMPI_Comm_shrink(*comm, &tmp_comm);
 
     /* Figure out how many procs failed */
-    MPI_Comm_size(**comm, &old_size);
+    MPI_Comm_size(*comm, &old_size);
     MPI_Comm_size(tmp_comm, &new_size);
 
     nprocs = old_size - new_size;
@@ -76,7 +74,7 @@ void recover(MPI_Comm **comm, int rank) {
         printf("%d - Finished Spawn (rc = %d)\n", rank, rc);
     }
 
-    MPI_Intercomm_merge(intercomm, 0, new_intra);
+    MPI_Intercomm_merge(intercomm, 0, &new_intra);
     *comm = new_intra;
     return;
 #endif
@@ -85,7 +83,7 @@ void recover(MPI_Comm **comm, int rank) {
 int main(int argc, char *argv[]) {
     int rank, size, rc, rnum, print = 0, i;
     int successes = 0, revokes = 0, fails = 0;
-    MPI_Comm *world, parentcomm;
+    MPI_Comm world, parentcomm;
     pid_t pid;
     char *spawned;
 
@@ -93,8 +91,6 @@ int main(int argc, char *argv[]) {
 
     pid = getpid();
 
-    world = (MPI_Comm *) malloc(sizeof(MPI_Comm));
-    
     MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
     
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -107,18 +103,18 @@ int main(int argc, char *argv[]) {
     if (MPI_COMM_NULL != parentcomm) {
         printf("Spawned\n");
         MPI_Comm_set_errhandler(parentcomm, MPI_ERRORS_RETURN);
-        MPI_Intercomm_merge(parentcomm, 1, world);
+        MPI_Intercomm_merge(parentcomm, 1, &world);
         print = 1;
         spawned = strdup("spawned");
     } else {
         /* Dup MPI_COMM_WORLD so we can continue to use the 
          * world handle if there is a failure */
-        MPI_Comm_dup(MPI_COMM_WORLD, world);
+        MPI_Comm_dup(MPI_COMM_WORLD, &world);
         spawned = strdup("original");
     }
 
-    MPI_Comm_rank(*world, &rank);
-    MPI_Comm_size(*world, &size);
+    MPI_Comm_rank(world, &rank);
+    MPI_Comm_size(world, &size);
 
     /* Do a loop that keeps killing processes until there are none left */
     while(1) {
@@ -141,17 +137,17 @@ int main(int argc, char *argv[]) {
 
             if (rank == 0) {
                 for (i = 0; i < size; i++) {
-                    MPI_Send(NULL, 0, MPI_INT, i, 31338, *world);
+                    MPI_Send(NULL, 0, MPI_INT, i, 31338, world);
                     printf("%d - Sent to %d\n", rank, i);
                 }
             } else {
-                MPI_Recv(NULL, 0, MPI_INT, 0, 31338, *world, MPI_STATUS_IGNORE);
+                MPI_Recv(NULL, 0, MPI_INT, 0, 31338, world, MPI_STATUS_IGNORE);
                 printf("%d - Received from 0\n", rank);
             }
         }
 #endif
 
-        rc = MPI_Barrier(*world);
+        rc = MPI_Barrier(world);
 
         /* If comm was revoked, shrink world and try again */
         if (MPI_ERR_REVOKED == rc) {
@@ -165,7 +161,7 @@ int main(int argc, char *argv[]) {
         else if (MPI_ERR_PROC_FAILED == rc) {
             printf("%d - FAILED\n", rank);
             fails++;
-            OMPI_Comm_revoke(*world);
+            OMPI_Comm_revoke(world);
             recover(&world, rank);
             print = 1;
         } else if (MPI_SUCCESS == rc) {
@@ -174,7 +170,7 @@ int main(int argc, char *argv[]) {
         }
 
         //MPI_Comm_size(world, &size);
-        MPI_Comm_rank(*world, &rank);
+        MPI_Comm_rank(world, &rank);
     }
 
     printf("%d - Finalizing (%d successful barriers, %d revokes, %d fails, %d communicator size)\n", 
