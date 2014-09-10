@@ -65,7 +65,7 @@ void recover(MPI_Comm *comm, int rank) {
             MPI_Comm_free(&tmp_comm);
             recover(comm, rank);
         } else {
-            exit(1);
+            MPI_Abort(MPI_COMM_WORLD, rc);
         }
     }
     free(errcodes);
