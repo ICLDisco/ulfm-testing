@@ -1,3 +1,14 @@
+!
+! Copyright (c) 2015      The University of Tennessee and The University
+!                         of Tennessee Research Foundation.  All rights
+!                         reserved.
+!
+! $COPYRIGHT$
+! 
+! Additional copyrights may follow
+! 
+! $HEADER$
+
       program main
 
 !     include 'mpif.h'
