@@ -15,6 +15,7 @@
 #include <signal.h>
 #include <math.h>
 #include <mpi.h>
+#include <mpi-ext.h>
 
 int main( int argc, char* argv[] ) { 
     int np, rank, victim;
@@ -55,7 +56,7 @@ int main( int argc, char* argv[] ) {
         MPI_Error_string( rc, estr, &strl );
         printf( "Rank %04d: Barrier1 completed (rc=%s) duration %g (s)\n", rank, estr, tf1 );
     }
-    if( rc != MPI_ERR_PROC_FAILED ) MPI_Abort( MPI_COMM_WORLD, rc );
+    if( rc != MPIX_ERR_PROC_FAILED ) MPI_Abort( MPI_COMM_WORLD, rc );
     st = ceil(10*fmax(1., tff));
 
     /* operation on scomm should not raise an error, only procs 
@@ -72,7 +73,7 @@ int main( int argc, char* argv[] ) {
         MPI_Error_string( rc, estr, &strl );
         printf( "Rank %04d: Barrier2 completed (rc=%s) duration %g (s)\n", rank, estr, tf2 );
     }
-    if( rc != MPI_ERR_PROC_FAILED ) MPI_Abort( MPI_COMM_WORLD, rc );
+    if( rc != MPIX_ERR_PROC_FAILED ) MPI_Abort( MPI_COMM_WORLD, rc );
 
     MPI_Reduce( &tff, &mtff, 1, MPI_DOUBLE, MPI_MIN, 0, scomm );
     MPI_Reduce( &tff, &Mtff, 1, MPI_DOUBLE, MPI_MAX, 0, scomm );
