@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 The University of Tennessee and The University
+ * Copyright (c) 2012-2015 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2012      Oak Ridge National Labs.  All rights reserved.
@@ -12,6 +12,7 @@
  */
 
 #include <mpi.h>
+#include <mpi-ext.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -29,14 +30,14 @@ void recover(MPI_Comm *comm, int rank) {
     MPI_Comm intercomm, tmp_comm, new_intra;
     
 #if 0
-    OMPI_Comm_shrink(*comm, &new_intra);
+    MPIX_Comm_shrink(*comm, &new_intra);
     *comm = new_intra;
     return;
 #else
     printf("%d - Shrinking communicator\n", rank);
 
     /* Shrink the old communicator */
-    OMPI_Comm_shrink(*comm, &tmp_comm);
+    MPIX_Comm_shrink(*comm, &tmp_comm);
 
     /* Figure out how many procs failed */
     MPI_Comm_size(*comm, &old_size);
@@ -57,11 +58,11 @@ void recover(MPI_Comm *comm, int rank) {
     if (MPI_SUCCESS != rc) {
         MPI_Error_string(rc, errstr, &errstrlen);
         fprintf(stderr, "Exception raised during spawn: %s\n", errstr);
-        if (MPI_ERR_PROC_FAILED == rc) {
-            OMPI_Comm_revoke(tmp_comm);
+        if (MPIX_ERR_PROC_FAILED == rc) {
+            MPIX_Comm_revoke(tmp_comm);
             MPI_Comm_free(&tmp_comm);
             recover(comm, rank);
-        } else if (MPI_ERR_REVOKED == rc) {
+        } else if (MPIX_ERR_REVOKED == rc) {
             MPI_Comm_free(&tmp_comm);
             recover(comm, rank);
         } else {
@@ -150,7 +151,7 @@ int main(int argc, char *argv[]) {
         rc = MPI_Barrier(world);
 
         /* If comm was revoked, shrink world and try again */
-        if (MPI_ERR_REVOKED == rc) {
+        if (MPIX_ERR_REVOKED == rc) {
             printf("%d - REVOKED\n", rank);
             revokes++;
             recover(&world, rank);
@@ -158,10 +159,10 @@ int main(int argc, char *argv[]) {
         } 
         /* Otherwise check for a new process failure and recover
          * if necessary */
-        else if (MPI_ERR_PROC_FAILED == rc) {
+        else if (MPIX_ERR_PROC_FAILED == rc) {
             printf("%d - FAILED\n", rank);
             fails++;
-            OMPI_Comm_revoke(world);
+            MPIX_Comm_revoke(world);
             recover(&world, rank);
             print = 1;
         } else if (MPI_SUCCESS == rc) {

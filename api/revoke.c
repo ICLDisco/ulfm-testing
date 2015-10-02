@@ -15,6 +15,7 @@
 #include <signal.h>
 #include <math.h>
 #include <mpi.h>
+#include <mpi-ext.h>
 
 #define NMEASURES 10
 #define NREPEATS 1001
@@ -73,7 +74,7 @@ for( r=0; r<NREPEATS; r++ ) { /* collect multiple samples */
         start=MPI_Wtime();
         if( rank == np-1 ) {
             printf( "# Rank %04d: Revoking\n", rank );
-            OMPI_Comm_revoke( fcomm );
+            MPIX_Comm_revoke( fcomm );
         }
         rc=MPI_Allreduce( A, B, count, MPI_DOUBLE, MPI_SUM, fcomm );
         tf1=MPI_Wtime()-start;
@@ -81,7 +82,7 @@ for( r=0; r<NREPEATS; r++ ) { /* collect multiple samples */
             MPI_Error_string( rc, estr, &strl );
             printf( "Rank %04d: Allreduce[revoke] completed (rc=%s) duration %g (s)\n", rank, estr, tf1 );
         }
-        if( rc != MPI_ERR_REVOKED ) { 
+        if( rc != MPIX_ERR_REVOKED ) { 
             MPI_Error_string( rc, estr, &strl );
             printf( "Rank %04d: Allreduce[revoke] completed (rc=%s) duration %g (s)\n", rank, estr, tf1 );
             MPI_Abort( MPI_COMM_WORLD, rc );

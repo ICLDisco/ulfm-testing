@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 The University of Tennessee and The University
+ * Copyright (c) 2012-2015 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2012      Oak Ridge National Labs.  All rights reserved.
@@ -12,6 +12,7 @@
  */
 
 #include <mpi.h>
+#include <mpi-ext.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -55,17 +56,17 @@ int main(int argc, char *argv[]) {
         rc = MPI_Barrier(world);
         
         /* If comm was revoked, shrink world and try again */
-        if (MPI_ERR_REVOKED == rc) {
+        if (MPIX_ERR_REVOKED == rc) {
             revokes++;
-            OMPI_Comm_shrink(world, &tmp);
+            MPIX_Comm_shrink(world, &tmp);
             world = tmp;
         } 
         /* Otherwise check for a new process failure and recover
          * if necessary */
-        else if (MPI_ERR_PROC_FAILED == rc) {
+        else if (MPIX_ERR_PROC_FAILED == rc) {
             fails++;
-            OMPI_Comm_revoke(world);
-            OMPI_Comm_shrink(world, &tmp);
+            MPIX_Comm_revoke(world);
+            MPIX_Comm_shrink(world, &tmp);
             world = tmp;
         } else if (MPI_SUCCESS != rc) {
             printf("%d - unknown error %d\n", rank, rc);
