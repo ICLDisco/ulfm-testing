@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 The University of Tennessee and The University
+ * Copyright (c) 2012-2015 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
@@ -16,9 +16,10 @@
 #include <math.h>
 #include <mpi.h>
 
-#define NMEASURES 1
-#define MIN_count 128*1024 
-#define MAX_count 128*1024
+#define NMEASURES 10
+#define NREPEATS 1001
+#define MIN_count 1 
+#define MAX_count 64*1024/8
 
 int main( int argc, char* argv[] ) { 
     int np, rank;
@@ -28,7 +29,7 @@ int main( int argc, char* argv[] ) {
     char estr[MPI_MAX_ERROR_STRING]=""; int strl;
     MPI_Comm fcomm, scomm;
     int verbose=0;
-    double* A,* B; int count=16*1024;
+    double* A,* B; int count;
     
     MPI_Init( &argc, &argv );
     MPI_Comm_size( MPI_COMM_WORLD, &np );
@@ -36,8 +37,8 @@ int main( int argc, char* argv[] ) {
     
     if( !strcmp( argv[argc-1], "-v" ) ) verbose=1;
 
+for( r=0; r<NREPEATS; r++ ) { /* collect multiple samples */
     for( count = MIN_count; count <= MAX_count; count *= 2 ) {
-//for( r=0; r<1; r++ ) { /* do it twice to remove IB connexion noise */
         A=malloc( sizeof(double)*count );
         B=malloc( sizeof(double)*count );
         for( i=0; i<count; i++ ) {
@@ -45,9 +46,9 @@ int main( int argc, char* argv[] ) {
             B[i] = (double)rank;
         }
         MPI_Comm_dup( MPI_COMM_WORLD, &scomm ); /* service comm, no revoke */
-//        MPI_Allreduce( A, B, count, MPI_DOUBLE, MPI_SUM, scomm ); /*warmup*/
+        MPI_Allreduce( A, B, count, MPI_DOUBLE, MPI_SUM, scomm ); /*warmup*/
         MPI_Comm_dup( MPI_COMM_WORLD, &fcomm ); /* revoke on fcomm */
-//        MPI_Allreduce( A, B, count, MPI_DOUBLE, MPI_SUM, fcomm ); /*warmup*/
+        MPI_Allreduce( A, B, count, MPI_DOUBLE, MPI_SUM, fcomm ); /*warmup*/
         MPI_Comm_set_errhandler( fcomm, MPI_ERRORS_RETURN ); /* errors are not fatal on fcomm */
 
         /* taking some base measurements to compare performance */
@@ -106,7 +107,6 @@ int main( int argc, char* argv[] ) {
         MPI_Comm_free( &fcomm ); MPI_Comm_free( &scomm );
         //MPI_Barrier( MPI_COMM_WORLD ); /*just because*/
         free(B); free(A);
-//} /*for r*/    
         if( 0 == rank ) printf( "## Timings ########### Min         ### Max         ##\n" );
 
         for( i=0; i < NMEASURES; i++ ) {        
@@ -131,6 +131,7 @@ int main( int argc, char* argv[] ) {
                 count*sizeof(double), i, mtf2, Mtf2 );
         }
     }
+} /*for r*/    
 
     MPI_Finalize();
     return EXIT_SUCCESS;
