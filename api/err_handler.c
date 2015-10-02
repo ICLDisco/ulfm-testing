@@ -17,7 +17,7 @@
 #include <mpi.h>
 #include <mpi-ext.h>
 
-void revoke_handler( MPI_Comm* comm, int* err ) {
+void revoke_handler( MPI_Comm* comm, int* err, ... ) {
     if( MPIX_ERR_REVOKED != *err ) { 
         MPIX_Comm_revoke( *comm );
     }
