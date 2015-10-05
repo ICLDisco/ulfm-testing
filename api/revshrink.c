@@ -64,6 +64,7 @@ int main(int argc, char *argv[]) {
             printf("Rank %d - Send rc=%d\n", rank, rc);
             rc = MPI_Wait(&rreq, MPI_STATUS_IGNORE);
             printf("Rank %d - Recv rc=%d\n", rank, rc);
+            free(sb); free(rb);
 #endif
             MPIX_Comm_shrink(world, &tmp);
             MPI_Comm_free(&world);
@@ -79,6 +80,7 @@ int main(int argc, char *argv[]) {
             printf("Rank %d - Send rc=%d\n", rank, rc);
             rc = MPI_Wait(&rreq, MPI_STATUS_IGNORE);
             printf("Rank %d - Recv rc=%d\n", rank, rc);
+            free(sb); free(rb);
 #endif
             MPIX_Comm_shrink(world, &tmp);
             MPI_Comm_free(&world);
