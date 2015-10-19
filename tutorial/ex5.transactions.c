@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
 /*
- * Copyright (c) 2013-2014 The University of Tennessee and The University
+ * Copyright (c) 2013-2015 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -36,7 +36,7 @@ static int __stack_pos = 0;
 #define CATCH_BLOCK(COMM)  \
     __stack_pos--; \
     __stack_in_agree = 1; \
-    OMPI_Comm_agree(COMM, &__flag); \
+    MPIX_Comm_agree(COMM, &__flag); \
     __stack_in_agree = 0; \
   } \
   if( 0xffffffff != __flag ) {
@@ -45,7 +45,7 @@ static int __stack_pos = 0;
   } } while (0);
 
 #define RAISE(COMM, EXCEPTION) \
-  OMPI_Comm_revoke(COMM); \
+  MPIX_Comm_revoke(COMM); \
   assert(0 != (EXCEPTION)); \
   if(!__stack_in_agree ) \
     longjmp( stack_jmp_buf[__stack_pos], (EXCEPTION) ); /* escape from hell */
