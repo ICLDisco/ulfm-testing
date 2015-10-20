@@ -30,8 +30,8 @@ int main(int argc, char *argv[])
     if( rank == (size-1) ) raise(SIGKILL);
 
     rc = MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Error_string( rc, errstr, &len );
-    printf("Rank %d / %d (error %s)\n",
+    MPI_Error_string(rc, errstr, &len);
+    printf("Rank %d / %d: Notified of error %s. Stayin' alive!\n",
              rank, size, errstr);
 
     MPI_Finalize();

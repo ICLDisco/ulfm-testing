@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <signal.h>
 
-void verbose_errhandler( MPI_Comm* pcomm, int* perr, ... ) {
+void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     MPI_Comm comm = *pcomm;
     int err = *perr;
     char errstr[MPI_MAX_ERROR_STRING];
@@ -36,7 +36,7 @@ void verbose_errhandler( MPI_Comm* pcomm, int* perr, ... ) {
     MPIX_Comm_failure_get_acked(comm, &group_f);
     MPI_Group_size(group_f, &nf);
     MPI_Error_string(err, errstr, &len);
-    printf("Rank %d / %d (error %s), %d deads { ",
+    printf("Rank %d / %d: Notified of error %s. %d found dead: { ",
            rank, size, errstr, nf);
 
     ranks_gf = (int*)malloc(nf * sizeof(int));
@@ -51,8 +51,7 @@ void verbose_errhandler( MPI_Comm* pcomm, int* perr, ... ) {
     printf("}\n");
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int rank, size;
     MPI_Errhandler errh; 
 
