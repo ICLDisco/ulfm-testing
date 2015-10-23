@@ -22,13 +22,13 @@ int main(int argc, char *argv[])
     char errstr[MPI_MAX_ERROR_STRING];
 
     MPI_Init(NULL, NULL);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
     MPI_Comm_set_errhandler(MPI_COMM_WORLD,
                             MPI_ERRORS_RETURN);
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
     if( rank == (size-1) ) raise(SIGKILL);
-
     rc = MPI_Barrier(MPI_COMM_WORLD);
     MPI_Error_string(rc, errstr, &len);
     printf("Rank %d / %d: Notified of error %s. Stayin' alive!\n",

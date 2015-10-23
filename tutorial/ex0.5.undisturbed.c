@@ -15,6 +15,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <math.h>
+
+static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...);
+
+int main(int argc, char *argv[]) {
+    int rank, size, peer;
+    MPI_Errhandler errh;
+    double myvalue, hisvalue=NAN;
+
+    MPI_Init(NULL, NULL);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    MPI_Comm_create_errhandler(verbose_errhandler,
+                               &errh);
+    MPI_Comm_set_errhandler(MPI_COMM_WORLD,
+                            errh);
+
+    myvalue = rank/(double)size;
+    if( 0 == rank%2 )
+        peer = ((rank+1)<size)? rank+1: MPI_PROC_NULL;
+    else
+        peer = rank-1;
+
+    if( rank == (size/2) ) raise(SIGKILL);
+    MPI_Sendrecv(&myvalue, 1, MPI_DOUBLE, peer, 1,
+                 &hisvalue, 1, MPI_DOUBLE, peer, 1,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    if( peer != MPI_PROC_NULL)
+        printf("Rank %d / %d: value from %d is %g\n",
+               rank, size, peer, hisvalue);
+
+    MPI_Finalize();
+}
+
 
 static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     MPI_Comm comm = *pcomm;
@@ -49,23 +85,4 @@ static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     for(i = 0; i < nf; i++)
         printf("%d ", ranks_gc[i]);
     printf("}\n");
-}
-
-int main(int argc, char *argv[]) {
-    int rank, size;
-    MPI_Errhandler errh;
-
-    MPI_Init(NULL, NULL);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    MPI_Comm_create_errhandler(verbose_errhandler,
-                               &errh);
-    MPI_Comm_set_errhandler(MPI_COMM_WORLD,
-                            errh);
-
-    if( rank == (size-1) ) raise(SIGKILL);
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    MPI_Finalize();
 }

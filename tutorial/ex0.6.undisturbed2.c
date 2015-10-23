@@ -16,6 +16,31 @@
 #include <stdlib.h>
 #include <signal.h>
 
+static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...);
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    MPI_Errhandler errh;
+    MPI_Comm half_comm;
+
+    MPI_Init(NULL, NULL);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    MPI_Comm_create_errhandler(verbose_errhandler,
+                               &errh);
+    MPI_Comm_set_errhandler(MPI_COMM_WORLD,
+                            errh);
+
+    MPI_Comm_split(MPI_COMM_WORLD, (rank<(size/2))? 1: 2, rank, &half_comm);
+
+    if( rank == 0 ) raise(SIGKILL);
+    MPI_Barrier(half_comm);
+
+    MPI_Comm_free(&half_comm);
+    MPI_Finalize();
+}
+
 static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     MPI_Comm comm = *pcomm;
     int err = *perr;
@@ -49,23 +74,4 @@ static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     for(i = 0; i < nf; i++)
         printf("%d ", ranks_gc[i]);
     printf("}\n");
-}
-
-int main(int argc, char *argv[]) {
-    int rank, size;
-    MPI_Errhandler errh;
-
-    MPI_Init(NULL, NULL);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    MPI_Comm_create_errhandler(verbose_errhandler,
-                               &errh);
-    MPI_Comm_set_errhandler(MPI_COMM_WORLD,
-                            errh);
-
-    if( rank == (size-1) ) raise(SIGKILL);
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    MPI_Finalize();
 }
