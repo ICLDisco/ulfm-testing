@@ -14,7 +14,7 @@ FFLAGS += -g
 #		   -L$(HOME)/lib/BLACS/LIB
 LDFLAGS =
 
-SOURCES=ex0.0.failure.c ex0.1.notification.c ex0.2.errhandler.c ex0.3.report_one.c ex0.4.report_many.c ex0.5.undisturbed.c ex0.6.undisturbed2.c ex0.7.report_nonuniform.c ex1.ftmpi_ulfm_err_returns-nonuniform.CORR.c ex1.ftmpi_ulfm_safecomm_creation.c ex2.ftmpi_ulfm_revoke.CORR.c ex3.ftmpi_ulfm_spares.CORR1.c ex3.ftmpi_ulfm_spares.CORR2.c ex3.ftmpi_ulfm_spares.c ex4.ftmpi_ulfm_respawn.CORR.c ex5.transactions.c
+SOURCES=ex0.0.failure.c ex0.1.notification.c ex0.2.errhandler.c ex0.3.report_one.c ex0.4.report_many.c ex0.5.undisturbed.c ex0.6.undisturbed2.c ex0.7.report_nonuniform.c ex1.safe_split.c ex2.ftmpi_ulfm_revoke.CORR.c ex3.ftmpi_ulfm_spares.CORR1.c ex3.ftmpi_ulfm_spares.CORR2.c ex3.ftmpi_ulfm_spares.c ex4.ftmpi_ulfm_respawn.CORR.c ex5.transactions.c
 APPS=$(SOURCES:.c=)
 
 all: $(APPS)
