@@ -15,10 +15,11 @@
 #include <signal.h>
 #include <math.h>
 #include <mpi.h>
+#include <mpi-ext.h>
 
-/* Performs a comm_dup, returns uniformely MPI_ERR_PROC_FAILED or
+/* Performs a comm_dup, returns uniformely MPIX_ERR_PROC_FAILED or
  * MPI_SUCCESS */
-int MPIX_Comm_dup_safe(MPI_Comm comm, MPI_Comm *newcomm) {
+int ft_comm_dup(MPI_Comm comm, MPI_Comm *newcomm) {
     int rc;
     int flag;
 
@@ -28,7 +29,7 @@ int MPIX_Comm_dup_safe(MPI_Comm comm, MPI_Comm *newcomm) {
     if( !flag ) {
         if( rc == MPI_SUCCESS ) {
             MPI_Comm_free(newcomm);
-            rc = MPI_ERR_PROC_FAILED;
+            rc = MPIX_ERR_PROC_FAILED;
         }
     }
     return rc;
@@ -66,17 +67,17 @@ int main( int argc, char* argv[] ) {
     tnoft=MPI_Wtime()-start;
     if( verbose ) {
         MPI_Error_string(rc, estr, &strl);
-        printf("Rank %04d: comm_dup (unsafe) completed (rc=%s) duration %g (s)\n", rank, estr, tnoft);
+        printf("Rank %04d: mpi_comm_dup (unsafe) completed (rc=%s) duration %g (s)\n", rank, estr, tnoft);
     }
     MPI_Comm_free(&ncomm);
 
     /* Time a consistently creating split */
     start=MPI_Wtime();
-    rc = MPIX_Comm_dup_safe(fcomm, &ncomm);
+    rc = ft_comm_dup(fcomm, &ncomm);
     tff=MPI_Wtime()-start;
     if( verbose ) {
         MPI_Error_string(rc, estr, &strl);
-        printf("Rank %04d: x_comm_dup (safe) completed (rc=%s) duration %g (s)\n", rank, estr, tff);
+        printf("Rank %04d: ft_comm_dup (safe) completed (rc=%s) duration %g (s)\n", rank, estr, tff);
     }
     if( MPI_SUCCESS == rc ) MPI_Comm_free(&ncomm);
 
@@ -86,11 +87,11 @@ int main( int argc, char* argv[] ) {
         raise(SIGKILL);
     }
     start=MPI_Wtime();
-    rc = MPIX_Comm_dup_safe(fcomm, &ncomm);
+    rc = ft_comm_dup(fcomm, &ncomm);
     twf=MPI_Wtime()-start;
     if( verbose ) {
         MPI_Error_string(rc, estr, &strl);
-        printf("Rank %04d: x_comm_dup (safe) completed (rc=%s) duration %g (s)\n", rank, estr, twf);
+        printf("Rank %04d: ft_comm_dup (safe) completed (rc=%s) duration %g (s)\n", rank, estr, twf);
     }
     if( MPI_SUCCESS == rc ) MPI_Comm_free(&ncomm);
 
@@ -120,8 +121,8 @@ void print_timings( MPI_Comm scomm,
     if( 0 == rank ) printf(
         "## Timings ########### Min         ### Max         ##\n"
         "dup     (unsafe)    # %13.5e # %13.5e\n"
-        "xdup    (safe)      # %13.5e # %13.5e\n"
-        "xdup    (safe w/f)  # %13.5e # %13.5e\n"
+        "ftdup   (safe)      # %13.5e # %13.5e\n"
+        "ftdup   (safe w/f)  # %13.5e # %13.5e\n"
         , mtnoft, Mtnoft, mtff, Mtff, mtwf, Mtwf);
 }
 

@@ -61,7 +61,7 @@ static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     int *ranks_gc, *ranks_gf;
 
     MPI_Error_class(err, &eclass);
-    if( MPI_ERR_PROC_FAILED != eclass ) {
+    if( MPIX_ERR_PROC_FAILED != eclass ) {
         MPI_Abort(comm, err);
     }
 
