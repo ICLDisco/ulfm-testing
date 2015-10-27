@@ -21,7 +21,6 @@ void print_iterations( MPI_Comm scomm, int i );
 int rank, verbose=0; /* makes this global (for printfs) */
 #define COUNT 1024
 
-/* NOTE: this is an example to illustrate an issue, it doesn't work! */
 int main( int argc, char* argv[] ) {
     MPI_Comm fcomm, /* a comm to inject a failure */
              scomm; /* a comm excluding the injected failure */
@@ -38,6 +37,9 @@ int main( int argc, char* argv[] ) {
     MPI_Comm_size( MPI_COMM_WORLD, &np );
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 
+    if( 0 == rank )
+        printf("THIS EXAMPLE WILL DEADLOCK: it is intentionally flawed for illustrative purpose.\n");
+
     /* Assign left and right neighbors to be rank-1 and rank+1
      * in a ring modulo np */
     left   = (np+rank-1)%np;
@@ -46,7 +48,7 @@ int main( int argc, char* argv[] ) {
     /* The victim is always the last process (for simplicity) */
     victim = (rank == np-1)? 1 : 0;
 
-    /* To collect the timings, we need a communicator that still 
+    /* To collect the timings, we need a communicator that still
      *  works after we inject a failure:
      *  this split creates a communicator that excludes the victim;
      *  we can do this, because we know the victim a-priori, in this
@@ -72,7 +74,7 @@ int main( int argc, char* argv[] ) {
         if( verbose ) printf( "Rank %04d: entering Sendrecv %d\n", rank, i );
         start=MPI_Wtime();
         /* At every iteration, a process receives from it's 'left' neighbor
-         * and sends to 'right' neighbor (ring fashion, modulo np) 
+         * and sends to 'right' neighbor (ring fashion, modulo np)
          * ... -> 0 -> 1 -> 2 -> ... -> np-1 -> 0 ... */
         rc = MPI_Sendrecv( sarray, COUNT, MPI_DOUBLE, right, 0,
                            rarray, COUNT, MPI_DOUBLE, left , 0,

@@ -45,7 +45,7 @@ int main( int argc, char* argv[] ) {
     /* The victim is always the last process (for simplicity) */
     victim = (rank == np-1)? 1 : 0;
 
-    /* To collect the timings, we need a communicator that still 
+    /* To collect the timings, we need a communicator that still
      *  works after we inject a failure:
      *  this split creates a communicator that excludes the victim;
      *  we can do this, because we know the victim a-priori, in this
@@ -71,7 +71,7 @@ int main( int argc, char* argv[] ) {
         if( verbose ) printf( "Rank %04d: entering Sendrecv %d\n", rank, i );
         start=MPI_Wtime();
         /* At every iteration, a process receives from it's 'left' neighbor
-         * and sends to 'right' neighbor (ring fashion, modulo np) 
+         * and sends to 'right' neighbor (ring fashion, modulo np)
          * ... -> 0 -> 1 -> 2 -> ... -> np-1 -> 0 ... */
         rc = MPI_Sendrecv( sarray, COUNT, MPI_DOUBLE, right, 0,
                            rarray, COUNT, MPI_DOUBLE, left , 0,

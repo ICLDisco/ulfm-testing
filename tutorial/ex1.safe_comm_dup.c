@@ -41,7 +41,7 @@ int rank, verbose=0; /* makes this global (for printfs) */
 int main( int argc, char* argv[] ) {
     MPI_Comm scomm, /* a comm w/o failure to collect timings */
              fcomm, /* a comm in which we inject a failure */
-             ncomm; /* a comm to hold the result for MPI_Comm_split */
+             ncomm; /* a comm to hold the result of MPI_Comm_dup */
     int victim, np;
     int rc; /* error code from MPI functions */
     char estr[MPI_MAX_ERROR_STRING]=""; int strl; /* error messages */
