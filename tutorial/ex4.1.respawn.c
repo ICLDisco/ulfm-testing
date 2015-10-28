@@ -17,7 +17,7 @@
 #include <mpi-ext.h>
 
 int rank, verbose=0; /* makes this global (for printfs) */
-char* progname;
+char** gargv;
 
 int MPIX_Comm_replace(MPI_Comm comm, MPI_Comm *newcomm) {
     MPI_Comm icomm, /* the intercomm between the spawnees and the old (shrinked) world */
@@ -31,12 +31,12 @@ redo:
         /* I am a new spawnee, waiting for my new rank assignment
          * it will be sent by rank 0 in the old world */
         MPI_Comm_get_parent(&icomm);
+        scomm = MPI_COMM_WORLD;
         MPI_Recv(&crank, 1, MPI_INT, 0, 1, icomm, MPI_STATUS_IGNORE);
         if( verbose ) {
             MPI_Comm_rank(scomm, &srank);
             printf("Spawnee %d: crank=%d\n", srank, crank);
         }
-        scomm = MPI_COMM_WORLD;
     }
     else {
         /* I am a survivor: Spawn the appropriate number
@@ -56,7 +56,7 @@ redo:
         /* We handle failures during this function ourselves... */
         MPI_Comm_set_errhandler( scomm, MPI_ERRORS_RETURN );
 
-        rc = MPI_Comm_spawn(progname, MPI_ARGV_NULL, nd, MPI_INFO_NULL,
+        rc = MPI_Comm_spawn(gargv[0], &gargv[1], nd, MPI_INFO_NULL,
                             0, scomm, &icomm, MPI_ERRCODES_IGNORE);
         flag = (MPI_SUCCESS == rc);
         MPIX_Comm_agree(comm, &flag);
@@ -100,7 +100,14 @@ redo:
     MPIX_Comm_agree(scomm, &flag);
     if( MPI_COMM_WORLD != scomm ) MPI_Comm_free(&scomm);
     if( verbose ) printf("crank=%d, going into agree(icomm, flag=%d)\n", crank, rflag);
+#if 0
     MPIX_Comm_agree(icomm, &rflag);
+#else
+    if( !rflag ) {
+        printf( "MPI_Comm_agree is not yet implemented on intercomms, rc != MPI_SUCCESS, result will be wrong, aborting test.\n" );
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+#endif
     MPI_Comm_free(&icomm);
     if( !(flag && rflag) ) {
         if( MPI_SUCCESS == rc ) {
@@ -118,6 +125,7 @@ redo:
      * new failures have disrupted the process: we need to
      * make sure we succeeded at all ranks, or retry until it works. */
     flag = (MPI_SUCCESS==rc);
+    if( verbose ) printf("crank=%d going into agree(mcomm, flag=%d)\n", crank, rflag);
     MPIX_Comm_agree(mcomm, &flag);
     MPI_Comm_free(&mcomm);
     if( !flag ) {
@@ -149,7 +157,7 @@ int main( int argc, char* argv[] ) {
     double start, tff=0, twf=0; /* timings */
     double array[COUNT];
 
-    progname = argv[0];
+    gargv = argv;
     MPI_Init( &argc, &argv );
     if( !strcmp( argv[argc-1], "-v" ) ) verbose=1;
 
