@@ -134,12 +134,11 @@ void print_timings( MPI_Comm scomm, double tff, double twf );
 int main( int argc, char* argv[] ) {
     MPI_Comm world; /* a world comm for the work, w/o the spares */
     MPI_Comm rworld; /* and a temporary handle to store the repaired copy */
-    int np, wnp, wrank=-1, victim, spare;
+    int np, victim, spare;
     int rc; /* error code from MPI functions */
     char estr[MPI_MAX_ERROR_STRING]=""; int strl; /* error messages */
     double start, tff=0, twf=0; /* timings */
     double array[COUNT];
-    int completed = 0;
 
     progname = argv[0];
     MPI_Init( &argc, &argv );
@@ -163,8 +162,8 @@ int main( int argc, char* argv[] ) {
         goto joinwork;
     }
 
-    /* The victim is always the last process (for simplicity) */
-    victim = (rank == np-1)? 1 : 0;
+    /* The victim is always the median process (for simplicity) */
+    victim = (rank == np/2)? 1 : 0;
 
     /* Victim suicides */
     if( victim ) {
