@@ -53,7 +53,7 @@ redo:
             *newcomm = comm;
             return MPI_SUCCESS;
         }
-        /* We do not want to crash if new failures come... */
+        /* We handle failures during this function ourselves... */
         MPI_Comm_set_errhandler( scomm, MPI_ERRORS_RETURN );
 
         rc = MPI_Comm_spawn(progname, MPI_ARGV_NULL, nd, MPI_INFO_NULL,
@@ -121,8 +121,17 @@ redo:
     MPIX_Comm_agree(mcomm, &flag);
     MPI_Comm_free(&mcomm);
     if( !flag ) {
-        MPI_Comm_free( newcomm );
+        if( MPI_SUCCESS == rc ) {
+            MPI_Comm_free( newcomm );
+        }
         goto redo;
+    }
+
+    /* restore the error handler */
+    if( MPI_COMM_NULL != comm ) {
+        MPI_Errhandler errh;
+        MPI_Comm_get_errhandler( comm, &errh );
+        MPI_Comm_set_errhandler( *newcomm, errh );
     }
 
     return MPI_SUCCESS;
@@ -144,8 +153,6 @@ int main( int argc, char* argv[] ) {
     MPI_Init( &argc, &argv );
     if( !strcmp( argv[argc-1], "-v" ) ) verbose=1;
 
-    /* We set an errhandler on world, so that a failure is not fatal anymore. */
-    MPI_Comm_set_errhandler( MPI_COMM_WORLD, MPI_ERRORS_RETURN );
 
     /* Am I a spare ? */
     MPI_Comm_get_parent( &world );
@@ -155,10 +162,14 @@ int main( int argc, char* argv[] ) {
         MPI_Comm_dup( MPI_COMM_WORLD, &world );
         MPI_Comm_size( world, &np );
         MPI_Comm_rank( world, &rank );
+        /* We set an errhandler on world, so that a failure is not fatal anymore. */
+        MPI_Comm_set_errhandler( world, MPI_ERRORS_RETURN );
     } else {
         MPIX_Comm_replace( MPI_COMM_NULL, &world );
         MPI_Comm_size( world, &np );
         MPI_Comm_rank( world, &rank );
+        /* We set an errhandler on world, so that a failure is not fatal anymore. */
+        MPI_Comm_set_errhandler( world, MPI_ERRORS_RETURN );
         goto joinwork;
     }
 
