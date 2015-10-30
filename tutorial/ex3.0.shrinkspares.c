@@ -17,7 +17,7 @@
 #include <mpi-ext.h>
 
 int MPIX_Comm_replace(MPI_Comm worldwspares, MPI_Comm comm, MPI_Comm *newcomm) {
-    MPI_Comm shrinked; 
+    MPI_Comm shrinked;
     MPI_Group cgrp, sgrp, dgrp;
     int rc, flag, i, nc, ns, nd, crank, srank, drank;
 
@@ -36,7 +36,7 @@ redo:
         /* remembering the former rank: we will reassign the same
          * ranks in the new world. */
         MPI_Comm_rank(comm, &crank);
-        
+
         /* >>??? is crank the same as srank ???<<< */
 
     } else { /* I was a spare, waiting for my new assignment */
@@ -51,7 +51,7 @@ int rank, verbose=0; /* makes this global (for printfs) */
 #define COUNT 1024
 #define SPARES 2
 
-int main( int argc, char* argv[] ) { 
+int main( int argc, char* argv[] ) {
     MPI_Comm world; /* a world comm for the work, w/o the spares */
     MPI_Comm rworld; /* and a temporary handle to store the repaired copy */
     int np, wnp, wrank=-1, victim, spare;
@@ -60,7 +60,7 @@ int main( int argc, char* argv[] ) {
     double start, tff=0, twf=0; /* timings */
     double array[COUNT];
     int completed = 0;
-    
+
     MPI_Init( &argc, &argv );
     MPI_Comm_size( MPI_COMM_WORLD, &np );
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
@@ -100,7 +100,7 @@ int main( int argc, char* argv[] ) {
     start=MPI_Wtime();
     rc = MPI_Bcast( array, COUNT, MPI_DOUBLE, 0, world );
     twf=MPI_Wtime()-start;
-    if(verbose) { 
+    if(verbose) {
         MPI_Error_string( rc, estr, &strl );
         printf( "Rank %04d: Bcast completed (rc=%s) duration %g (s)\n", rank, estr, twf );
     }
@@ -115,11 +115,11 @@ joinwork:
     start=MPI_Wtime();
     rc = MPI_Bcast( array, COUNT, MPI_DOUBLE, 0, world );
     tff=MPI_Wtime()-start;
-    if(verbose) { 
+    if(verbose) {
         MPI_Error_string( rc, estr, &strl );
         printf( "Rank %04d: Bcast completed (rc=%s) duration %g (s)\n", rank, estr, twf );
     }
-    
+
     print_timings( world, tff, twf );
 
     MPI_Comm_free( &world );
@@ -128,8 +128,8 @@ joinwork:
     return EXIT_SUCCESS;
 }
 
-void print_timings( MPI_Comm scomm, 
-                    double tff, 
+void print_timings( MPI_Comm scomm,
+                    double tff,
                     double twf ) {
     /* Storage for min and max times */
     double mtff, Mtff, mtwf, Mtwf;
@@ -139,7 +139,7 @@ void print_timings( MPI_Comm scomm,
     MPI_Reduce( &twf, &mtwf, 1, MPI_DOUBLE, MPI_MIN, 0, scomm );
     MPI_Reduce( &twf, &Mtwf, 1, MPI_DOUBLE, MPI_MAX, 0, scomm );
 
-    if( 0 == rank ) printf( 
+    if( 0 == rank ) printf(
         "## Timings ########### Min         ### Max         ##\n"
         "Bcast   (w/ fault)  # %13.5e # %13.5e\n"
         "Bcast (post fault)  # %13.5e # %13.5e\n"
