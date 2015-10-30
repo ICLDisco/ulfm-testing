@@ -106,8 +106,8 @@ int main( int argc, char* argv[] ) {
     }
 
     MPIX_Comm_replace( MPI_COMM_WORLD, world, &rworld );
-    world = rworld;
     MPI_Comm_free( &world );
+    world = rworld;
 
 joinwork:
     /* Do another bcast: now, nobody is dead... */

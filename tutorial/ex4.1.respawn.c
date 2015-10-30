@@ -166,6 +166,7 @@ int main( int argc, char* argv[] ) {
         /* We set an errhandler on world, so that a failure is not fatal anymore. */
         MPI_Comm_set_errhandler( world, MPI_ERRORS_RETURN );
     } else {
+        /* I am a spare, lets get the repaired world */
         MPIX_Comm_replace( MPI_COMM_NULL, &world );
         MPI_Comm_size( world, &np );
         MPI_Comm_rank( world, &rank );
@@ -181,7 +182,6 @@ int main( int argc, char* argv[] ) {
     if( victim ) {
         printf( "Rank %04d: committing suicide\n", rank );
         raise( SIGKILL );
-        while(1); /* wait for the signal */
     }
 
     /* Do a bcast: now, somebody is dead... */
@@ -197,8 +197,8 @@ int main( int argc, char* argv[] ) {
     MPIX_Comm_replace( world, &rworld );
     MPI_Comm_free( &world );
     world = rworld;
-joinwork:
 
+joinwork:
     /* Do another bcast: now, nobody is dead... */
     if(verbose) printf( "Rank %04d: entering Bcast\n", rank );
     start=MPI_Wtime();
@@ -211,11 +211,8 @@ joinwork:
 
     print_timings( world, tff, twf );
 
-    /* Even though world contains failed processes, we free it:
-     *  this gives an opportunity for MPI to reclaim the resources. */
     MPI_Comm_free( &world );
 
-    /* Finalize completes despite failures */
     MPI_Finalize();
     return EXIT_SUCCESS;
 }
