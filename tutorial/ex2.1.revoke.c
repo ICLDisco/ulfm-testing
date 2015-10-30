@@ -22,8 +22,8 @@ int rank, verbose=0; /* makes this global (for printfs) */
 #define COUNT 1024
 
 int main( int argc, char* argv[] ) {
-    MPI_Comm fcomm, /* a comm to inject a failure */
-             scomm; /* a comm excluding the injected failure */
+    MPI_Comm scomm, /* a comm w/o failure to collect timings */
+             fcomm; /* a comm in which we inject a failure */
     int np, victim, left, right;
     int rc; /* error code from MPI functions */
     char estr[MPI_MAX_ERROR_STRING]=""; int strl; /* error messages */
@@ -36,30 +36,24 @@ int main( int argc, char* argv[] ) {
     MPI_Init( NULL, NULL );
     MPI_Comm_size( MPI_COMM_WORLD, &np );
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-
-    /* Assign left and right neighbors to be rank-1 and rank+1
-     * in a ring modulo np */
-    left   = (np+rank-1)%np;
-    right  = (np+rank+1)%np;
-
-    /* The victim is always the last process (for simplicity) */
-    victim = (rank == np-1)? 1 : 0;
+    victim = (rank == np-1);
 
     /* To collect the timings, we need a communicator that still
      *  works after we inject a failure:
      *  this split creates a communicator that excludes the victim;
      *  we can do this, because we know the victim a-priori, in this
      *  example. */
-    MPI_Comm_split( MPI_COMM_WORLD, victim, rank, &scomm );
+    MPI_Comm_split( MPI_COMM_WORLD, victim? MPI_UNDEFINED: 1, rank, &scomm );
 
     /* Let's work on a copy of MPI_COMM_WORLD, good practice anyway. */
     MPI_Comm_dup( MPI_COMM_WORLD, &fcomm );
-
-    /* We set an errhandler on fcomm, so that a failure is not fatal anymore.
-     * Note: the errhandler on scomm and MPI_COMM_WORLD are still the
-     *   default: if an operation involves a failed process on these
-     *   communicators, the program still aborts! */
+    /* We set an errhandler on fcomm, so that a failure is not fatal anymore. */
     MPI_Comm_set_errhandler( fcomm, MPI_ERRORS_RETURN );
+
+    /* Assign left and right neighbors to be rank-1 and rank+1
+     * in a ring modulo np */
+    left   = (np+rank-1)%np;
+    right  = (np+rank+1)%np;
 
     for( i = 0; i < 10; i++ ) {
         /* Victim suicides */
