@@ -100,7 +100,7 @@ redo:
     MPIX_Comm_agree(scomm, &flag);
     if( MPI_COMM_WORLD != scomm ) MPI_Comm_free(&scomm);
     if( verbose ) printf("crank=%d, going into agree(icomm, flag=%d)\n", crank, rflag);
-    rc = MPIX_Comm_agree(icomm, &rflag);
+    MPIX_Comm_agree(icomm, &rflag);
     MPI_Comm_free(&icomm);
     if( !(flag && rflag) ) {
         if( MPI_SUCCESS == rc ) {
