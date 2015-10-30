@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <mpi.h>
+#include <mpi-ext.h>
 
 int MPIX_Comm_replace(MPI_Comm worldwspares, MPI_Comm comm, MPI_Comm *newcomm) {
     MPI_Comm shrinked; 
@@ -29,7 +30,9 @@ redo:
 
     if(MPI_COMM_NULL != comm) { /* I was not a spare before... */
         /* not enough processes to continue, aborting. */
-        MPI_Comm_size(comm, &nc); if( nc > ns ) MPI_Abort(comm, MPI_ERR_INTERN); 
+        MPI_Comm_size(comm, &nc);
+        if( nc > ns ) MPI_Abort(comm, MPI_ERR_PROC_FAILED);
+
         /* remembering the former rank: we will reassign the same
          * ranks in the new world. */
         MPI_Comm_rank(comm, &crank);
@@ -70,23 +73,26 @@ int main( int argc, char* argv[] ) {
      * the spare processes */
     spare = (rank>np-SPARES-1)? MPI_UNDEFINED : 1;
     MPI_Comm_split( MPI_COMM_WORLD, spare, rank, &world );
+
     /* Spare process go wait until we need them */
     if( MPI_COMM_NULL == world ) {
         do {
-            MPIX_Comm_replace( MPI_COMM_WORLD, world, &rworld );
-        } while(MPI_COMM_NULL == rworld );
+            MPIX_Comm_replace( MPI_COMM_WORLD, MPI_COMM_NULL, &world );
+        } while(MPI_COMM_NULL == world );
+        MPI_Comm_size( world, &wnp );
+        MPI_Comm_rank( world, &wrank );
         goto joinwork;
     }
+
     MPI_Comm_size( world, &wnp );
     MPI_Comm_rank( world, &wrank );
     /* The victim is always the last process (for simplicity) */
-    victim = (wrank == wnp-1)? 1 : 0;
+    victim = (wrank == wnp-1);
 
     /* Victim suicides */
     if( victim ) {
         printf( "Rank %04d: committing suicide\n", rank );
         raise( SIGKILL );
-        while(1); /* wait for the signal */
     }
 
     /* Do a bcast: now, somebody is dead... */
@@ -100,10 +106,10 @@ int main( int argc, char* argv[] ) {
     }
 
     MPIX_Comm_replace( MPI_COMM_WORLD, world, &rworld );
-    MPI_Comm_free( &world );
-joinwork:
     world = rworld;
+    MPI_Comm_free( &world );
 
+joinwork:
     /* Do another bcast: now, nobody is dead... */
     if(verbose) printf( "Rank %04d: entering Bcast\n", rank );
     start=MPI_Wtime();
@@ -116,11 +122,8 @@ joinwork:
     
     print_timings( world, tff, twf );
 
-    /* Even though world contains failed processes, we free it: 
-     *  this gives an opportunity for MPI to reclaim the resources. */
     MPI_Comm_free( &world );
 
-    /* Finalize completes despite failures */
     MPI_Finalize();
     return EXIT_SUCCESS;
 }
