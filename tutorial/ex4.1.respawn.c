@@ -24,7 +24,7 @@ int MPIX_Comm_replace(MPI_Comm comm, MPI_Comm *newcomm) {
              scomm, /* the local comm for each sides of icomm */
              mcomm; /* the intracomm, merged from icomm */
     MPI_Group cgrp, sgrp, dgrp;
-    int rc, flag=1, rflag, i, nc, ns, nd, crank, srank, drank;
+    int rc, flag, rflag, i, nc, ns, nd, crank, srank, drank;
 
 redo:
     if( comm == MPI_COMM_NULL ) { /* am I a new process? */
@@ -100,14 +100,7 @@ redo:
     MPIX_Comm_agree(scomm, &flag);
     if( MPI_COMM_WORLD != scomm ) MPI_Comm_free(&scomm);
     if( verbose ) printf("crank=%d, going into agree(icomm, flag=%d)\n", crank, rflag);
-#if 0
-    MPIX_Comm_agree(icomm, &rflag);
-#else
-    if( !rflag ) {
-        printf( "MPI_Comm_agree is not yet implemented on intercomms, rc != MPI_SUCCESS, result will be wrong, aborting test.\n" );
-        MPI_Abort(MPI_COMM_WORLD, 1);
-    }
-#endif
+    rc = MPIX_Comm_agree(icomm, &rflag);
     MPI_Comm_free(&icomm);
     if( !(flag && rflag) ) {
         if( MPI_SUCCESS == rc ) {
@@ -125,7 +118,7 @@ redo:
      * new failures have disrupted the process: we need to
      * make sure we succeeded at all ranks, or retry until it works. */
     flag = (MPI_SUCCESS==rc);
-    if( verbose ) printf("crank=%d going into agree(mcomm, flag=%d)\n", crank, rflag);
+    if( verbose ) printf("crank=%d going into agree(mcomm, flag=%d)\n", crank, flag);
     MPIX_Comm_agree(mcomm, &flag);
     MPI_Comm_free(&mcomm);
     if( !flag ) {
