@@ -53,13 +53,17 @@ int main( int argc, char* argv[] ) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     victim = (rank == (np-1));
 
+    /* To collect the timings, we need a communicator that still
+     *  works after we inject a failure:
+     *  this split creates a communicator that excludes the victim;
+     * we can do this, because we know the victim a-priori, in this
+     *  example. */
+    MPI_Comm_split(MPI_COMM_WORLD, victim? MPI_UNDEFINED: 1, rank, &scomm);
+
     /* Let's work on a copy of MPI_COMM_WORLD, good practice anyway. */
     MPI_Comm_dup(MPI_COMM_WORLD, &fcomm);
     /* We set an errhandler on fcomm, so that a failure is not fatal anymore. */
     MPI_Comm_set_errhandler(fcomm, MPI_ERRORS_RETURN);
-    /* We will inject failures at known ranks in fcomm, make sure these ranks
-     * are not in scomm */
-    MPI_Comm_split(MPI_COMM_WORLD, victim? MPI_UNDEFINED: 0, rank, &scomm);
 
     /* Do a first non FT dup, and time it */
     start=MPI_Wtime();
@@ -71,7 +75,7 @@ int main( int argc, char* argv[] ) {
     }
     MPI_Comm_free(&ncomm);
 
-    /* Time a consistently creating split */
+    /* Time a consistent failure resilient dup */
     start=MPI_Wtime();
     rc = ft_comm_dup(fcomm, &ncomm);
     tff=MPI_Wtime()-start;
@@ -81,7 +85,7 @@ int main( int argc, char* argv[] ) {
     }
     if( MPI_SUCCESS == rc ) MPI_Comm_free(&ncomm);
 
-    /* Time a uniformly interrupted split w/failure */
+    /* Time a consistent failure resilient dup,  w/failure */
     if( victim ) {
         if( verbose ) printf("Rank %04d: suicide\n", rank);
         raise(SIGKILL);

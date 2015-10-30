@@ -40,6 +40,9 @@ int main(int argc, char *argv[]) {
         peer = rank-1;
 
     if( rank == (size/2) ) raise(SIGKILL);
+    /* exchange a value between a pair of two consecutive
+     * odd and even ranks; not communicating with anybody
+     * else. */
     MPI_Sendrecv(&myvalue, 1, MPI_DOUBLE, peer, 1,
                  &hisvalue, 1, MPI_DOUBLE, peer, 1,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);

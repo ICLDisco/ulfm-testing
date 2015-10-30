@@ -32,11 +32,14 @@ int main(int argc, char *argv[]) {
     MPI_Comm_set_errhandler(MPI_COMM_WORLD,
                             errh);
 
+    /* Create 2 halfcomms, one for the low ranks, 1 for the high ranks */
     MPI_Comm_split(MPI_COMM_WORLD, (rank<(size/2))? 1: 2, rank, &half_comm);
 
     if( rank == 0 ) raise(SIGKILL);
     MPI_Barrier(half_comm);
 
+    /* Even when half_comm contains failed processes, we call MPI_Comm_free
+     * to give an opportunity for MPI to clean the ressources. */
     MPI_Comm_free(&half_comm);
     MPI_Finalize();
 }
