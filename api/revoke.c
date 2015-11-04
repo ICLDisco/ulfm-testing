@@ -47,6 +47,11 @@ int main(int argc, char *argv[]) {
 
     /* Have rank 0 cause some trouble for later */
     if( 0 == rank ) {
+#ifdef ADD_PENDING_REQS
+        printf("######## INTRACOMM propagation test w/reqs #######\n");
+#else
+        printf("######## INTRACOMM propagation test ##############\n");
+#endif
         MPIX_Comm_revoke(world);
     } else {
 #ifdef ADD_PENDING_REQS
@@ -70,7 +75,7 @@ int main(int argc, char *argv[]) {
     rc = MPI_Barrier(MPI_COMM_WORLD);
     assert(MPI_SUCCESS == rc);
     if( 0 == rank )
-        printf("##################################################\n");
+        printf("######## INTERCOMM propagation test ##############\n");
 
     MPI_Comm_free(&world);
     MPI_Comm_split(MPI_COMM_WORLD, (rank<(size/2))? 0: 1, rank, &half);
@@ -88,7 +93,7 @@ int main(int argc, char *argv[]) {
     rc = MPI_Barrier(MPI_COMM_WORLD);
     assert(MPI_SUCCESS == rc);
     if( 0 == rank )
-        printf("##################################################\n");
+        printf("######## INTRACOMM propagation test w/failure ####\n");
 
     MPI_Comm_free(&world);
     MPI_Comm_dup(MPI_COMM_WORLD, &world);
