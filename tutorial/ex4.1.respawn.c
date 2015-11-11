@@ -16,7 +16,7 @@
 #include <mpi.h>
 #include <mpi-ext.h>
 
-int rank, verbose=0; /* makes this global (for printfs) */
+int rank=MPI_PROC_NULL, verbose=0; /* makes this global (for printfs) */
 char** gargv;
 
 int MPIX_Comm_replace(MPI_Comm comm, MPI_Comm *newcomm) {
@@ -59,13 +59,14 @@ redo:
         rc = MPI_Comm_spawn(gargv[0], &gargv[1], nd, MPI_INFO_NULL,
                             0, scomm, &icomm, MPI_ERRCODES_IGNORE);
         flag = (MPI_SUCCESS == rc);
-        MPIX_Comm_agree(comm, &flag);
-        if( (MPI_SUCCESS == rc) != flag ) {
+        MPIX_Comm_agree(scomm, &flag);
+        if( !flag ) {
             if( MPI_SUCCESS == rc ) {
                 MPIX_Comm_revoke(icomm);
                 MPI_Comm_free(&icomm);
             }
             MPI_Comm_free(&scomm);
+            if( verbose ) fprintf(stderr, "%04d: comm_spawn failed, redo\n", rank);
             goto redo;
         }
 
@@ -91,21 +92,19 @@ redo:
         }
     }
 
-    if( verbose ) printf("crank=%d GOING IN MERGE\n", crank);
     /* Merge the intercomm, to reconstruct an intracomm (we check
      * that this operation worked before we proceed further) */
     rc = MPI_Intercomm_merge(icomm, 1, &mcomm);
     rflag = flag = (MPI_SUCCESS==rc);
-    if( verbose ) printf("crank=%d, going into agree(scomm, flag=%d)\n", crank, flag);
     MPIX_Comm_agree(scomm, &flag);
     if( MPI_COMM_WORLD != scomm ) MPI_Comm_free(&scomm);
-    if( verbose ) printf("crank=%d, going into agree(icomm, flag=%d)\n", crank, rflag);
     MPIX_Comm_agree(icomm, &rflag);
     MPI_Comm_free(&icomm);
     if( !(flag && rflag) ) {
         if( MPI_SUCCESS == rc ) {
             MPI_Comm_free(&mcomm);
         }
+        if( verbose ) fprintf(stderr, "%04d: Intercomm_merge failed, redo\n", rank);
         goto redo;
     }
 
@@ -118,13 +117,13 @@ redo:
      * new failures have disrupted the process: we need to
      * make sure we succeeded at all ranks, or retry until it works. */
     flag = (MPI_SUCCESS==rc);
-    if( verbose ) printf("crank=%d going into agree(mcomm, flag=%d)\n", crank, flag);
     MPIX_Comm_agree(mcomm, &flag);
     MPI_Comm_free(&mcomm);
     if( !flag ) {
         if( MPI_SUCCESS == rc ) {
             MPI_Comm_free( newcomm );
         }
+        if( verbose ) fprintf(stderr, "%04d: comm_split failed, redo\n", rank);
         goto redo;
     }
 
@@ -185,7 +184,6 @@ int main( int argc, char* argv[] ) {
     }
 
     /* Do a bcast: now, somebody is dead... */
-    if(verbose) printf( "Rank %04d: entering Bcast\n", rank );
     start=MPI_Wtime();
     rc = MPI_Bcast( array, COUNT, MPI_DOUBLE, 0, world );
     twf=MPI_Wtime()-start;
@@ -200,13 +198,12 @@ int main( int argc, char* argv[] ) {
 
 joinwork:
     /* Do another bcast: now, nobody is dead... */
-    if(verbose) printf( "Rank %04d: entering Bcast\n", rank );
     start=MPI_Wtime();
     rc = MPI_Bcast( array, COUNT, MPI_DOUBLE, 0, world );
     tff=MPI_Wtime()-start;
     if(verbose) {
         MPI_Error_string( rc, estr, &strl );
-        printf( "Rank %04d: Bcast completed (rc=%s) duration %g (s)\n", rank, estr, twf );
+        printf( "Rank %04d: Bcast completed (rc=%s) duration %g (s)\n", rank, estr, tff );
     }
 
     print_timings( world, tff, twf );

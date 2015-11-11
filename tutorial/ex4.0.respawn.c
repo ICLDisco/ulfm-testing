@@ -16,7 +16,7 @@
 #include <mpi.h>
 #include <mpi-ext.h>
 
-int rank, verbose=0; /* makes this global (for printfs) */
+int rank=MPI_PROC_NULL, verbose=0; /* makes this global (for printfs) */
 char** gargv;
 
 int MPIX_Comm_replace(MPI_Comm comm, MPI_Comm *newcomm) {
@@ -56,16 +56,19 @@ redo:
         /* We handle failures during this function ourselves... */
         MPI_Comm_set_errhandler( scomm, MPI_ERRORS_RETURN );
 
+        if(rank==0) raise( SIGKILL );
+
         rc = MPI_Comm_spawn(gargv[0], &gargv[1], nd, MPI_INFO_NULL,
                             0, scomm, &icomm, MPI_ERRCODES_IGNORE);
         flag = (MPI_SUCCESS == rc);
-        MPIX_Comm_agree(comm, &flag);
-        if( (MPI_SUCCESS == rc) != flag ) {
+        MPIX_Comm_agree(scomm, &flag);
+        if( !flag ) {
             if( MPI_SUCCESS == rc ) {
                 MPIX_Comm_revoke(icomm);
                 MPI_Comm_free(&icomm);
             }
             MPI_Comm_free(&scomm);
+            printf("spawn failed, redo\n");
             goto redo;
         }
 
@@ -206,7 +209,7 @@ joinwork:
     tff=MPI_Wtime()-start;
     if(verbose) {
         MPI_Error_string( rc, estr, &strl );
-        printf( "Rank %04d: Bcast completed (rc=%s) duration %g (s)\n", rank, estr, twf );
+        printf( "Rank %04d: Bcast completed (rc=%s) duration %g (s)\n", rank, estr, tff );
     }
 
     print_timings( world, tff, twf );

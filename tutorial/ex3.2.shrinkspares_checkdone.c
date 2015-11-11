@@ -31,7 +31,7 @@ redo:
     if(MPI_COMM_NULL != comm) { /* I was not a spare before... */
         /* not enough processes to continue, aborting. */
         MPI_Comm_size(comm, &nc);
-        if( nc > ns ) MPI_Abort(comm, MPI_ERR_PROC_FAILED);
+        if( nc > ns ) MPI_Abort(worldwspares, MPI_ERR_PROC_FAILED);
 
         /* remembering the former rank: we will reassign the same
          * ranks in the new world. */
@@ -151,7 +151,7 @@ joinwork:
     tff=MPI_Wtime()-start;
     if(verbose) {
         MPI_Error_string( rc, estr, &strl );
-        printf( "Rank %04d: Bcast completed (rc=%s) duration %g (s)\n", rank, estr, twf );
+        printf( "Rank %04d: Bcast completed (rc=%s) duration %g (s)\n", rank, estr, tff );
     }
 
     print_timings( world, tff, twf );
