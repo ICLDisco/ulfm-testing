@@ -64,11 +64,10 @@ redo:
     /* Split or some of the communications above may have failed if
      * new failures have disrupted the process: we need to
      * make sure we succeeded at all ranks, or retry until it works. */
-    flag = (MPI_SUCCESS==rc);
-    MPIX_Comm_agree(shrinked, &flag);
+    flag = MPIX_Comm_agree(shrinked, &flag);
     MPI_Comm_free(&shrinked);
-    if( !flag ) {
-        MPI_Comm_free( newcomm );
+    if( MPI_SUCCESS != flag ) {
+        if( MPI_SUCCESS == rc ) MPI_Comm_free(newcomm);
         goto redo;
     }
     return MPI_SUCCESS;
