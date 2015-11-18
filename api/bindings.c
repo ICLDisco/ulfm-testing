@@ -21,7 +21,7 @@
 int rank;
 
 /* verify if the interface is complete and provided.
- * As per MPI draft spec, these interface may not be 
+ * As per MPI draft spec, these interface may not be
  * functional under the duress of failures.
  */
 int main(void) {
@@ -29,11 +29,19 @@ int main(void) {
     MPI_Group fgroup;
     MPI_Request req;
     int flag = 0;
+    int *ftsupport = NULL;
     char errs[MPI_MAX_ERROR_STRING]; int errsl;
 
     MPI_Init(NULL, NULL);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+    MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_FT, &ftsupport, &flag);
+    if( flag ) {
+        printf("AVAILABLE: MPI_FT Attribute key (SET %d: ULFM%s SUPPORTED)\n", *ftsupport, (1==*ftsupport)? "": " NOT");
+    }
+    else {
+        printf("AVAILABLE: MPI_FT Attribute key (NOT SET: ULFM NOT SUPPORTED)\n");
+    }
     MPI_Error_string(MPIX_ERR_PROC_FAILED, errs, &errsl);
     printf("AVAILABLE: %s\n", errs);
     MPI_Error_string(MPIX_ERR_PROC_FAILED_PENDING, errs, &errsl);
@@ -50,10 +58,10 @@ int main(void) {
     MPIX_Comm_iagree(MPI_COMM_WORLD, &flag, &req);
     MPI_Wait(&req, MPI_STATUS_IGNORE);
     printf("AVAILABLE: %s\n", "MPIX_Comm_iagree");
-    MPIX_Comm_revoke(MPI_COMM_WORLD);
-    printf("AVAILABLE: %s\n", "MPIX_Comm_revoke");
     MPIX_Comm_shrink(MPI_COMM_WORLD, &shrink);
     printf("AVAILABLE: %s\n", "MPIX_Comm_shrink");
+    MPIX_Comm_revoke(MPI_COMM_WORLD);
+    printf("AVAILABLE: %s\n", "MPIX_Comm_revoke");
 
     MPI_Finalize();
     return 0;
