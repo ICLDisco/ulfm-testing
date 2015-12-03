@@ -1,12 +1,22 @@
-CC=$(shell find ${ULFM_PREFIX} -name mpicc)
-FC=$(shell find ${ULFM_PREFIX} -name mpif90)
-CFLAGS+=-g -O0
+#ULFM_PREFIX=${HOME}/ulfm/bin/
+CC = $(shell PATH=$(ULFM_PREFIX)/bin:$(PATH) which mpicc)
+FC = $(shell PATH=$(ULFM_PREFIX)/bin:$(PATH) which mpif90)
+MPIRUN=$(shell PATH=$(ULFM_PREFIX)/bin:$(PATH) which mpirun)
+ifeq ($(CC),)
+  $(error ULFM mpicc not found with ULFM_PREFIX=$(ULFM_PREFIX))
+endif
 
-TARGETS=$(patsubst %.c,%, $(wildcard *.c))
+CFLAGS+=-g
+FFLAGS+=-g
 
-all: ${TARGETS}
+TARGETS=$(patsubst %.c,%, $(wildcard *.c)) $(patsubst %.f,%, $(wildcard *.f))
 
-clean: 
-	${RM} ${TARGETS}
+all: ${TARGETS} 
 
-.PHONY: all clean
+run: all
+	for program in ${TARGETS}; do ${MPIRUN} -am ft-enable-mpi -np 8 $$program; done
+
+clean:
+	${RM} ${TARGETS} ${TARGETS:=.dSYM} $(wildcard *.o) $(wildcard *.x)
+
+.PHONY: all clean run
