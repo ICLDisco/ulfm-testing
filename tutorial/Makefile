@@ -28,3 +28,4 @@ all: $(APPS)
 clean:
 	rm -rf $(APPS) $(APPS:=.dSYM) *.o *.x dump* core*
 
+.PHONY: all clean
