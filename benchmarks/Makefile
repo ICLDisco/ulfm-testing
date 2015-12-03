@@ -8,9 +8,7 @@ TARGETS=$(patsubst %.c,%, $(wildcard *.c))
 all: ${TARGETS} 
 
 run: all
-	for program in ${TARGETS}; do \
-		${MPIRUN} -am ft-enable-mpi -np 8 ${program}; \
-	done
+	for program in ${TARGETS}; do ${MPIRUN} -am ft-enable-mpi -np 8 $$program; done
 
 clean:
 	${RM} ${TARGETS}
