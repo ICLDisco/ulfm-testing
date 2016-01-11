@@ -29,7 +29,7 @@ static int __stack_pos = 0;
   do { \
     int __flag = 0xffffffff; \
     __stack_pos++; assert(__stack_pos < STACK_SIZE);\
-    EXCEPTION = setjmp(&stack_jmp_buf[__stack_pos]); \
+    EXCEPTION = setjmp(stack_jmp_buf[__stack_pos]); \
     __flag &= ~EXCEPTION; \
     if( 0 == EXCEPTION ) {
 
