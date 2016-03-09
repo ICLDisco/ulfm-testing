@@ -1,23 +1,25 @@
 /*
- * Copyright (c) 2014-2015 The University of Tennessee and The University
+ * Copyright (c) 2014-2016 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
  * $COPYRIGHT$
- * 
+ *
  * Additional copyrights may follow
- * 
+ *
  * $HEADER$
  */
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include <signal.h>
 #include <math.h>
 #include <mpi.h>
 #include <mpi-ext.h>
 
-int main( int argc, char* argv[] ) { 
+int main( int argc, char* argv[] ) {
     int np, rank, victim;
     int rc;
     double start, tff, mtff, Mtff, tf1, Mtf1, mtf1, tf2, Mtf2, mtf2;
@@ -25,9 +27,9 @@ int main( int argc, char* argv[] ) {
     char estr[MPI_MAX_ERROR_STRING]=""; int strl;
     MPI_Comm fcomm, scomm;
     int verbose=0;
-    
+
     MPI_Init( &argc, &argv );
-    
+
     if( !strcmp( argv[argc-1], "-v" ) ) verbose=1;
 
     MPI_Comm_dup( MPI_COMM_WORLD, &fcomm );
@@ -47,19 +49,19 @@ int main( int argc, char* argv[] ) {
         raise( SIGKILL );
         while(1); /* wait for the signal */
     }
-    
+
     if(verbose) printf( "Rank %04d: entering Barrier\n", rank );
     start=MPI_Wtime();
     rc = MPI_Barrier( fcomm );
     tf1=MPI_Wtime()-start;
-    if(verbose) { 
+    if(verbose) {
         MPI_Error_string( rc, estr, &strl );
         printf( "Rank %04d: Barrier1 completed (rc=%s) duration %g (s)\n", rank, estr, tf1 );
     }
     if( rc != MPIX_ERR_PROC_FAILED ) MPI_Abort( MPI_COMM_WORLD, rc );
     st = ceil(10*fmax(1., tff));
 
-    /* operation on scomm should not raise an error, only procs 
+    /* operation on scomm should not raise an error, only procs
      * not appearing in scomm are dead */
     MPI_Allreduce( MPI_IN_PLACE, &st, 1, MPI_INT, MPI_MAX, scomm );
     if( 0 == rank ) printf( "Sleeping for %ds ... ... ...\n", st );
@@ -69,7 +71,7 @@ int main( int argc, char* argv[] ) {
     start=MPI_Wtime();
     rc = MPI_Barrier( fcomm );
     tf2=MPI_Wtime()-start;
-    if(verbose) { 
+    if(verbose) {
         MPI_Error_string( rc, estr, &strl );
         printf( "Rank %04d: Barrier2 completed (rc=%s) duration %g (s)\n", rank, estr, tf2 );
     }
@@ -82,7 +84,7 @@ int main( int argc, char* argv[] ) {
     MPI_Reduce( &tf2, &mtf2, 1, MPI_DOUBLE, MPI_MIN, 0, scomm );
     MPI_Reduce( &tf2, &Mtf2, 1, MPI_DOUBLE, MPI_MAX, 0, scomm );
 
-    if( 0 == rank ) printf( 
+    if( 0 == rank ) printf(
         "## Timings ########### Min         ### Max         ##\n"
         "Barrier (no fault)  # %13.5e # %13.5e\n"
         "Barrier (new fault) # %13.5e # %13.5e\n"
