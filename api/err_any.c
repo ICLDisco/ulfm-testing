@@ -1,23 +1,24 @@
 /*
- * Copyright (c) 2014-2015 The University of Tennessee and The University
+ * Copyright (c) 2014-2016 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
  * $COPYRIGHT$
- * 
+ *
  * Additional copyrights may follow
- * 
+ *
  * $HEADER$
  */
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <signal.h>
 #include <math.h>
 #include <mpi.h>
 #include <mpi-ext.h>
 
-int main( int argc, char* argv[] ) { 
+int main( int argc, char* argv[] ) {
     int np, rank, master, victim;
     int st;
     int rc;
@@ -29,7 +30,7 @@ int main( int argc, char* argv[] ) {
     double start, tf1;
 
     MPI_Init( &argc, &argv );
-    
+
     if( !strcmp( argv[argc-1], "-v" ) ) verbose=1;
 
     MPI_Comm_dup( MPI_COMM_WORLD, &fcomm );
@@ -38,12 +39,12 @@ int main( int argc, char* argv[] ) {
     master = (rank == 0)? 1: 0;
 
     MPI_Barrier( fcomm );
-   
+
     if(master) {
         MPI_Request rany;
         MPI_Status sany;
         MPI_Comm_set_errhandler( fcomm, MPI_ERRORS_RETURN );
-        
+
         while(np-1 > failed+success) {
             if(verbose) printf( "Rank %04d: master post irecv(ANY) failed=%d, success=%d\n", rank, failed, success );
             start = MPI_Wtime();
@@ -51,7 +52,7 @@ int main( int argc, char* argv[] ) {
           rewait:
             rc = MPI_Wait( &rany, &sany );
             tf1 = MPI_Wtime()-start;
-            if(verbose) { 
+            if(verbose) {
                 MPI_Error_string( rc, estr, &strl );
                 printf( "Rank %04d: irecv(ANY) completed (rc=%s, from=%d) duration %g (s)\n", rank, estr, sany.MPI_SOURCE, tf1 );
             }
@@ -59,7 +60,7 @@ int main( int argc, char* argv[] ) {
                 if( 1 == st ) {
                     success++;
                     if( verbose ) printf( "Received all messages from %d\n", sany.MPI_SOURCE );
-                
+
                 }
             }
             else {

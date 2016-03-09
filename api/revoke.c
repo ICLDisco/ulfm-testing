@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 The University of Tennessee and The University
+ * Copyright (c) 2012-2016 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2012      Oak Ridge National Labs.  All rights reserved.
@@ -32,8 +32,6 @@ int main(int argc, char *argv[]) {
 
     MPI_Init(&argc, &argv);
 
-    MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
-
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #ifdef ADD_PENDING_REQS
@@ -44,6 +42,7 @@ int main(int argc, char *argv[]) {
     /* Dup MPI_COMM_WORLD so we can continue to use it after we
      * break the world handle */
     MPI_Comm_dup(MPI_COMM_WORLD, &world);
+    MPI_Comm_set_errhandler(world, MPI_ERRORS_RETURN);
 
     /* Have rank 0 cause some trouble for later */
     if( 0 == rank ) {
@@ -72,14 +71,14 @@ int main(int argc, char *argv[]) {
 #endif
     }
 
-    rc = MPI_Barrier(MPI_COMM_WORLD);
-    assert(MPI_SUCCESS == rc);
+    MPI_Barrier(MPI_COMM_WORLD);
     if( 0 == rank )
         printf("######## INTERCOMM propagation test ##############\n");
 
     MPI_Comm_free(&world);
     MPI_Comm_split(MPI_COMM_WORLD, (rank<(size/2))? 0: 1, rank, &half);
     MPI_Intercomm_create(half, 0, MPI_COMM_WORLD, rank<(size/2)? size/2: 0, 0, &world);
+    MPI_Comm_set_errhandler(world, MPI_ERRORS_RETURN);
 
     if( rank == 0 ) {
         MPIX_Comm_revoke(world);
@@ -97,6 +96,7 @@ int main(int argc, char *argv[]) {
 
     MPI_Comm_free(&world);
     MPI_Comm_dup(MPI_COMM_WORLD, &world);
+    MPI_Comm_set_errhandler(world, MPI_ERRORS_RETURN);
 
     if( size/2 == rank ) {
         raise(SIGKILL);

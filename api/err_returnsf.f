@@ -1,29 +1,29 @@
 !
-! Copyright (c) 2015      The University of Tennessee and The University
+! Copyright (c) 2015-2016 The University of Tennessee and The University
 !                         of Tennessee Research Foundation.  All rights
 !                         reserved.
 !
 ! $COPYRIGHT$
-! 
+!
 ! Additional copyrights may follow
-! 
+!
 ! $HEADER$
 
       program main
 
-!     include 'mpif.h'
-!     include 'mpif-ext.h'
-      use mpi
-      use mpi_ext
+!      use mpi
+!      use mpi_ext
       implicit none
+      include 'mpif.h'
+      include 'mpif-ext.h'
       integer rank, size, ierr, strlen
       character str*(MPI_MAX_ERROR_STRING)
 
       call MPI_INIT( ierr )
       call MPI_COMM_RANK( MPI_COMM_WORLD, rank, ierr )
       call MPI_COMM_SIZE( MPI_COMM_WORLD, size, ierr )
-      call MPI_COMM_SET_ERRHANDLER( MPI_COMM_WORLD, MPI_ERRORS_RETURN, 
-     &                               ierr ) 
+      call MPI_COMM_SET_ERRHANDLER( MPI_COMM_WORLD, MPI_ERRORS_RETURN,
+     &                               ierr )
       if ( rank .eq. 0) then
           stop
       endif
