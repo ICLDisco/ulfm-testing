@@ -24,18 +24,20 @@ int rank, verbose=0; /* makes this global (for printfs) */
 
 int main( int argc, char* argv[] ) {
     MPI_Comm fcomm, scomm; /* a comm to inject a failure, and a safe comm */
-    MPI_Group fgrp; /* a group to collect failed ranks */
     int np, nf, mf, victim, notify=0; /* the number of victims ranks */
     int dummy = 1; /* some buffer for Recv */
     int i, rc; /* error code from MPI functions */
     char estr[MPI_MAX_ERROR_STRING]=""; int strl; /* error messages */
-    double start, tff, twf; /* timings */
+    double start, tff; /* timings */
 
     MPI_Init(NULL, NULL);
     MPI_Comm_size( MPI_COMM_WORLD, &np );
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 
     int* faults = (int*)calloc(np, sizeof(int));
+    double* twup = (double*)calloc(np, sizeof(int));
+    int nwup = 0;
+    MPI_Group* fgrp = (MPI_Group*)calloc(np, sizeof(MPI_Group));
 
     while(1) {
         static struct option long_options[] = {
@@ -107,23 +109,23 @@ int main( int argc, char* argv[] ) {
     MPIX_Comm_agree(fcomm, &rc);
     if( 0 == rank ) printf("#####################################################\n");
 
+    start=MPI_Wtime();
 do {
     /* Victim suicides */
     if( victim ) {
-        printf( "Rank %04d: committing suicide at date %.9g\n", rank, MPI_Wtime() );
+        printf( "Rank %04d: committing suicide at date %.9f\n", rank, MPI_Wtime() );
         OMPI_Comm_failure_inject(fcomm, notify);
     }
 
     /* Do a recv from any_source : it will raise an exception: somebody is dead */
-    if(verbose) printf( "Rank %04d: entering Recv(any) at date %.9g\n", rank, MPI_Wtime() );
-    start=MPI_Wtime();
+    if(verbose) printf( "Rank %04d: entering Recv(any) at date %.9f\n", rank, MPI_Wtime() );
     /* do not post the send so that the recv remains locked until failure is
      * raised */
     rc = MPI_Recv(&dummy, 1, MPI_INT, MPI_ANY_SOURCE, 0, fcomm, MPI_STATUS_IGNORE);
-    twf=MPI_Wtime()-start;
+    twup[nwup]=MPI_Wtime();
     if(verbose) {
         MPI_Error_string( rc, estr, &strl );
-        printf( "Rank %04d: Recv1 completed (rc=%s) duration %g (s) at date %.9g\n", rank, estr, twf, MPI_Wtime() );
+        printf( "Rank %04d: Recv1 completed (rc=%s) duration %.6e (s) at date %.9f\n", rank, estr, twup[nwup]-start, twup[nwup] );
     }
     /* From the code flow, we know that the failure happened before
      * the send, by the semantic of the Recv, it is thereby
@@ -131,11 +133,31 @@ do {
     if( rc != MPI_ERR_PROC_FAILED ) MPI_Abort( MPI_COMM_WORLD, rc );
 
     MPIX_Comm_failure_ack(fcomm);
-    MPIX_Comm_failure_get_acked(fcomm, &fgrp);
-    MPI_Group_size(fgrp, &nf);
+    MPIX_Comm_failure_get_acked(fcomm, &fgrp[nwup]);
+    MPI_Group_size(fgrp[nwup], &nf);
+    nwup++;
 } while( nf != mf );
 
-    print_timings( scomm, tff, twf );
+    char str[4096];
+    /* print results */
+    MPI_Group group_c;
+    MPI_Comm_group(fcomm, &group_c);
+    int* ranks_gc = (int*)malloc(mf * sizeof(int));
+    int* ranks_gf = (int*)malloc(mf * sizeof(int));
+    for(i = 0; i < mf; i++) ranks_gf[i] = i;
+    for(i = 0; i < nwup; i++ ) {
+        MPI_Group_size(fgrp[i], &nf);
+        MPI_Group_translate_ranks(fgrp[i], nf, ranks_gf,
+                                  group_c, ranks_gc);
+        int ii;
+        int len;
+        len = snprintf(str, 4096, "Rank %04d: during wake up %d I observed %d faults, duration %.6e (s) at date %.9f { ", rank, i, nf, twup[i]-start, twup[i]);
+        for(ii = 0; ii < nf; ii++) len+=snprintf(str+len, 4096-len, "%d ", ranks_gc[ii]);
+        snprintf(str+len, 4096-len, " }");
+        printf("%s\n", str);
+    }
+
+    print_timings( scomm, tff, twup[nwup-1]-start );
 
     /* Even though fcomm contains failed processes, we free it:
      *  this gives an opportunity for MPI to reclaim the resources. */
