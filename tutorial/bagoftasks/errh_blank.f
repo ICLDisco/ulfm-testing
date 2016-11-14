@@ -40,11 +40,11 @@ c     Who I was on the original communicator (for debugging purposes)
 c     A failed process
       if (error_code .eq. MPI_ERR_PROC_FAILED) then
          write(*,*) "MPI_ERR_PROC_FAILED triggered @ rank", myrank
-         call OMPI_Comm_failure_ack(communicator, rc)
+         call MPIX_Comm_failure_ack(communicator, rc)
 
          if (myrank .eq. 0) then
 c     Get failed procs:
-            call OMPI_Comm_failure_get_acked(communicator, f_group, rc)
+            call MPIX_Comm_failure_get_acked(communicator, f_group, rc)
 c     Get no. of failed procs
             call MPI_Group_size(f_group, num_fails, rc)
 c     Get group from current communicator

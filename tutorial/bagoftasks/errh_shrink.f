@@ -34,11 +34,11 @@ c I found a failed process, so I will acknowledge the failure and
 c shrink the communicator 
       if (error_code .eq. MPI_ERR_PROC_FAILED) then
          write(*,*)"MPI_ERR_PROC_FAILED at rank", myrank
-         call OMPI_Comm_failure_ack(communicator, rc)
+         call MPIX_Comm_failure_ack(communicator, rc)
 
          if (myrank .eq. 0) then
 c     Get failed procs:
-            call OMPI_Comm_failure_get_acked(communicator, f_group, rc)
+            call MPIX_Comm_failure_get_acked(communicator, f_group, rc)
 c     Get no. of failed procs
             call MPI_Group_size(f_group,num_fails,rc)
             do rc = 1, num_fails
@@ -56,10 +56,10 @@ c     And mark them dead
             enddo
             rc = 0
 c     Render the communicator useless
-            call OMPI_Comm_revoke(communicator, rc)
+            call MPIX_Comm_revoke(communicator, rc)
          endif
 c     And create a new one
-         call OMPI_Comm_shrink(communicator, new_comm,rc)
+         call MPIX_Comm_shrink(communicator, new_comm,rc)
          communicator = new_comm
          oldrank = myrank
          call MPI_Comm_size (communicator, maxworkers, rc)
@@ -75,7 +75,7 @@ c     Gather: old process ranks at location new process
 
 c     Create new Communicators:
       elseif (error_code.eq.MPI_ERR_REVOKED) then
-         call OMPI_Comm_shrink(communicator, new_comm,rc)
+         call MPIX_Comm_shrink(communicator, new_comm,rc)
          communicator = new_comm
          oldrank = myrank
          call MPI_Comm_size (communicator, maxworkers, rc)

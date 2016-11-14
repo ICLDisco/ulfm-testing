@@ -154,7 +154,7 @@ joinwork:
 
     /*>>? we are leaving, but what about the spares? */
     if( 0 == rank ) {
-        printf("Non spare processes have quit. Spares don't know about it.\n");
+        printf("Non spare processes have quit. Spares don't know about it. \n/!\\ This program is incorrect and could CRASH.\n");
     }
     MPI_Finalize();
     return EXIT_SUCCESS;
