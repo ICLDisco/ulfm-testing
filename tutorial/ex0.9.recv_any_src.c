@@ -16,6 +16,34 @@
 #include <stdlib.h>
 #include <signal.h>
 
+static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...);
+
+int main(int argc, char *argv[]) {
+    int rank, size, rc, unused = 42;
+    MPI_Errhandler errh;
+    MPI_Status status;
+
+    MPI_Init(NULL, NULL);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    MPI_Comm_create_errhandler(verbose_errhandler,
+                               &errh);
+    MPI_Comm_set_errhandler(MPI_COMM_WORLD,
+                            errh);
+
+    if( rank == 0 ) {
+        raise(SIGKILL);  /* assume the process dies before sending the message */
+        MPI_Send(&rank, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
+    } else {
+        rc = MPI_Recv(&unused, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+        if( (MPI_SUCCESS == rc) && (rank < (size - 1)) )
+            MPI_Send(&unused, 1, MPI_INT, rank + 1, 0, MPI_COMM_WORLD);
+    }
+    printf("Rank %d/%d leaving (after receiving %d)\n", rank, size, unused);
+    MPI_Finalize();
+}
+
 static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     MPI_Comm comm = *pcomm;
     int err = *perr;
@@ -51,28 +79,3 @@ static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     printf("}\n");
 }
 
-int main(int argc, char *argv[]) {
-    int rank, size, rc, unused = 42;
-    MPI_Errhandler errh;
-    MPI_Status status;
-
-    MPI_Init(NULL, NULL);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    MPI_Comm_create_errhandler(verbose_errhandler,
-                               &errh);
-    MPI_Comm_set_errhandler(MPI_COMM_WORLD,
-                            errh);
-
-    if( rank == 0 ) {
-        raise(SIGKILL);  /* assume the process dies before sending the message */
-        MPI_Send(&rank, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
-    } else {
-        rc = MPI_Recv(&unused, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
-        if( (MPI_SUCCESS == rc) && (rank < (size - 1)) )
-            MPI_Send(&unused, 1, MPI_INT, rank + 1, 0, MPI_COMM_WORLD);
-    }
-    printf("Rank %d/%d leaving (after receiving %d)\n", rank, size, unused);
-    MPI_Finalize();
-}
