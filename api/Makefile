@@ -8,6 +8,7 @@ endif
 
 CFLAGS+=-g
 FFLAGS+=-g
+LDFLAGS+=-lm
 
 TARGETS=$(patsubst %.c,%, $(wildcard *.c)) $(patsubst %.f,%, $(wildcard *.f))
 
