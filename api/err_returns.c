@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 The University of Tennessee and The University
+ * Copyright (c) 2014-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
@@ -43,6 +43,8 @@ int main( int argc, char* argv[] ) {
     tff=MPI_Wtime()-start;
 
     MPI_Comm_set_errhandler( fcomm, MPI_ERRORS_RETURN );
+    /* wait until everybody is ready to deal with the fault to inject */
+    MPI_Barrier( fcomm );
 
     if( victim ) {
         printf( "Rank %04d: committing suicide\n", rank );
@@ -59,7 +61,7 @@ int main( int argc, char* argv[] ) {
         printf( "Rank %04d: Barrier1 completed (rc=%s) duration %g (s)\n", rank, estr, tf1 );
     }
     if( rc != MPIX_ERR_PROC_FAILED ) MPI_Abort( MPI_COMM_WORLD, rc );
-    st = ceil(10*fmax(1., tff));
+    st = ceil(3*fmax(1., tff));
 
     /* operation on scomm should not raise an error, only procs
      * not appearing in scomm are dead */

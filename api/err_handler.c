@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 The University of Tennessee and The University
+ * Copyright (c) 2014-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
@@ -66,7 +66,7 @@ int main( int argc, char* argv[] ) {
         MPI_Error_string( rc, estr, &strl );
         printf( "Rank %04d: Barrier1 completed (rc=%s) duration %g (s)\n", rank, estr, tf1 );
     }
-    st = ceil(10*fmax(1., tff));
+    st = ceil(3*fmax(1., tff));
 
     /* operation on scomm should not raise an error, only procs
      * not appearing in scomm are dead */
