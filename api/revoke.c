@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 The University of Tennessee and The University
+ * Copyright (c) 2012-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2012      Oak Ridge National Labs.  All rights reserved.
@@ -61,21 +61,21 @@ int main(int argc, char *argv[]) {
         MPI_Error_string(rc, estr, &strl);
         printf("Rank %3d - Barrier %s\n", rank, estr);
 #ifdef ADD_PENDING_REQS
-        rc = MPI_Wait(&sreq, MPI_STATUS_IGNORE);
-        MPI_Error_string(rc, estr, &strl);
-        printf("Rank %3d - Send %s\n", rank, estr);
         rc = MPI_Wait(&rreq, MPI_STATUS_IGNORE);
         MPI_Error_string(rc, estr, &strl);
         printf("Rank %3d - Recv %s\n", rank, estr);
+        rc = MPI_Wait(&sreq, MPI_STATUS_IGNORE);
+        MPI_Error_string(rc, estr, &strl);
+        printf("Rank %3d - Send %s\n", rank, estr);
         free(sb); free(rb);
 #endif
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Comm_free(&world);
     if( 0 == rank )
         printf("######## INTERCOMM propagation test ##############\n");
 
-    MPI_Comm_free(&world);
     MPI_Comm_split(MPI_COMM_WORLD, (rank<(size/2))? 0: 1, rank, &half);
     MPI_Intercomm_create(half, 0, MPI_COMM_WORLD, rank<(size/2)? size/2: 0, 0, &world);
     MPI_Comm_set_errhandler(world, MPI_ERRORS_RETURN);
@@ -97,6 +97,7 @@ int main(int argc, char *argv[]) {
     MPI_Comm_free(&world);
     MPI_Comm_dup(MPI_COMM_WORLD, &world);
     MPI_Comm_set_errhandler(world, MPI_ERRORS_RETURN);
+    MPI_Barrier(world);
 
     if( size/2 == rank ) {
         raise(SIGKILL);
