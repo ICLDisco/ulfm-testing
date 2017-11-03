@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 The University of Tennessee and The University
+ * Copyright (c) 2014-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
@@ -38,12 +38,14 @@ int main( int argc, char* argv[] ) {
     MPI_Comm_rank( fcomm, &rank );
     master = (rank == 0)? 1: 0;
 
+    if(master)
+        MPI_Comm_set_errhandler( fcomm, MPI_ERRORS_RETURN );
     MPI_Barrier( fcomm );
+    sleep(1); /* wait before starting failure injection that everything settles */
 
     if(master) {
         MPI_Request rany;
         MPI_Status sany;
-        MPI_Comm_set_errhandler( fcomm, MPI_ERRORS_RETURN );
 
         while(np-1 > failed+success) {
             if(verbose) printf( "Rank %04d: master post irecv(ANY) failed=%d, success=%d\n", rank, failed, success );
