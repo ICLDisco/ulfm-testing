@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 The University of Tennessee and The University
+ * Copyright (c) 2014-2016 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
@@ -11,7 +11,9 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <mpi.h>
+#include <mpi-ext.h>
 #include <signal.h>
 
 int main( int argc, char* argv[] ) {
