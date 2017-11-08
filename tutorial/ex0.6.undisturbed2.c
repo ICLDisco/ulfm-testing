@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 
     if( rank == 0 ) raise(SIGKILL);
     MPI_Barrier(half_comm);
-
+    printf("Rank %d / %d: after the barrier.\n", rank, size);
     /* Even when half_comm contains failed processes, we call MPI_Comm_free
      * to give an opportunity for MPI to clean the ressources. */
     MPI_Comm_free(&half_comm);

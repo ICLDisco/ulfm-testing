@@ -25,7 +25,7 @@ int MPIX_Comm_replace(MPI_Comm comm, MPI_Comm *newcomm) {
              scomm, /* the local comm for each sides of icomm */
              mcomm; /* the intracomm, merged from icomm */
     MPI_Group cgrp, sgrp, dgrp;
-    int rc, flag, rflag, i, nc, ns, nd, crank, srank, drank;
+    int rc, flag, rflag, i, nc, ns, nd, crank=MPI_PROC_NULL, srank, drank;
 
 redo:
     if( comm == MPI_COMM_NULL ) { /* am I a new process? */

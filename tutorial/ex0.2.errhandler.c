@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
 /*
- * Copyright (c) 2013-2015 The University of Tennessee and The University
+ * Copyright (c) 2013-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
     MPI_Comm_set_errhandler(MPI_COMM_WORLD,
                             errh);
 
+    MPI_Barrier(MPI_COMM_WORLD);
     if( rank == (size-1) ) raise(SIGKILL);
     MPI_Barrier(MPI_COMM_WORLD);
     printf("Rank %d / %d: Stayin' alive!\n", rank, size);
