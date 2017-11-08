@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 The University of Tennessee and The University
+ * Copyright (c) 2012-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2012      Oak Ridge National Labs.  All rights reserved.
@@ -20,7 +20,7 @@
 #define ADD_PENDING_REQS
 
 int main(int argc, char *argv[]) {
-    int rank, size, rc, verbose=0;
+    int rank, size, rc, verbose=0, r;
 #ifdef ADD_PENDING_REQS
     int *sb, *rb;
     int count=1024*1024;
@@ -36,14 +36,15 @@ int main(int argc, char *argv[]) {
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+    /* Dup MPI_COMM_WORLD so we can continue to use the
+     * world handle if there is a failure */
+    MPI_Comm_dup(MPI_COMM_WORLD, &world);
+
+for( r = 0; r < 100; r++) {
 #ifdef ADD_PENDING_REQS
     sb=malloc(sizeof(int)*count);
     rb=malloc(sizeof(int)*count);
 #endif
-
-    /* Dup MPI_COMM_WORLD so we can continue to use the
-     * world handle if there is a failure */
-    MPI_Comm_dup(MPI_COMM_WORLD, &world);
 
     /* Have rank 0 cause some trouble for later */
     if (0 == rank) {
@@ -93,10 +94,15 @@ int main(int argc, char *argv[]) {
     rc = MPI_Barrier(world);
     if( MPI_SUCCESS == rc ) {
         if( verbose ) printf("COMPLIANT @ rank %d\n", rank);
+        if( 0 == rank ) printf("COMPLIANT @ repeat %d\n", r);
     }
     else {
         MPI_Abort(MPI_COMM_WORLD, rc);
     }
+    /* Make sure next round does not inject a revoke in the previous barrier */
+    MPI_Barrier(MPI_COMM_WORLD);
+}
+
     MPI_Finalize();
 
     return 0;
