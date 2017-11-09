@@ -4,7 +4,7 @@ ULFM testings
 
 ### What is this repository for? ###
 
-This repository contains test to verify an ULFM Fault Tolerant MPI implementation conformity to the ULFM specification, measure performance in failure cases and the cost of recovery operations, examples, and torture tests. 
+This repository contains test to verify an ULFM Fault Tolerant MPI implementation conformity to the ULFM specification, measure performance in failure cases and the cost of recovery operations, examples, and torture tests.
 
 ### How do I get set up? ###
 
@@ -15,6 +15,6 @@ This repository contains test to verify an ULFM Fault Tolerant MPI implementatio
 
 ### Who do I talk to? ###
 
-* bouteill@utk.edu, bosilca@icl.utk.edu, herault@icl.utk.edu
+* bouteill@icl.utk.edu, bosilca@icl.utk.edu, herault@icl.utk.edu
 * Join the mailing list: ulfm@googlegroups.com
 * More information at http://fault-tolerance.org
