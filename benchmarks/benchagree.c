@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2014-2015 The University of Tennessee and The University
+ * Copyright (c) 2014-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
  * $COPYRIGHT$
- * 
+ *
  * Additional copyrights may follow
- * 
+ *
  * $HEADER$
  */
 
@@ -145,6 +145,10 @@ int main(int argc, char *argv[])
 
     MPI_Comm_set_errhandler(MPI_COMM_WORLD,MPI_ERRORS_RETURN);
 
+    /* warmup */
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPIX_Comm_agree(MPI_COMM_WORLD, &flag);
+
     MPI_Barrier(MPI_COMM_WORLD);
     for(i = 0; i < before; i++) {
         flag = rand() | common;
@@ -160,9 +164,9 @@ int main(int argc, char *argv[])
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-    printf("BEFORE_FAILURE %g s (stdev %g ) per agreement on rank %d (average over %d agreements)\n", 
+    printf("BEFORE_FAILURE %g s (stdev %g ) per agreement on rank %d (average over %d agreements)\n",
            stat_get_mean(&sbefore), stat_get_stdev(&sbefore), rank, stat_get_nbsamples(&sbefore));
-    
+
     MPI_Barrier(MPI_COMM_WORLD);
     if( faults[rank] ) {
         if(verbose) {
@@ -170,9 +174,9 @@ int main(int argc, char *argv[])
         }
         raise(SIGKILL); do { pause(); } while(1);
     }
-    /* Eliminate failure detection time from measurements */
+    /* Uncomment to eliminate failure detection time from measurements */
     //sleep(2);
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
 
     flag = rand() | common;
     start = MPI_Wtime();
@@ -191,14 +195,14 @@ int main(int argc, char *argv[])
             fprintf(stderr, "Rank %d out of %d agreement to stabilize; ret = %d\n", rank, stat_get_nbsamples(&sstab), ret);
         }
     }
-    
+
     printf("FIRST_AGREEMENT_AFTER_FAILURE %g s to do that agreement on rank %d\n", dfailure, rank);
     printf("STABILIZE_AGREEMENT %g s (stdev %g ) per agreements in %d agreements to stabilize to SUCCESS on rank %d (%g %g)\n",
            stat_get_mean(&sstab), stat_get_stdev(&sstab), stat_get_nbsamples(&sstab), rank, sstab.samples[0], sstab.samples[1]);
 
     sleep(1);
     MPIX_Comm_agree(MPI_COMM_WORLD,&flag);
-    
+
     for(i = 0; i < after; i++) {
         flag = rand() | common;
 
