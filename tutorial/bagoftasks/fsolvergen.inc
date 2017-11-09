@@ -27,8 +27,8 @@ C delays to display stuff better
 
 C sizes 
 	integer MAXSIZE, SLICES
-	parameter ( MAXSIZE =  5 )
-	parameter ( SLICES = 25 )
+	parameter ( MAXSIZE =  128 )
+	parameter ( SLICES = MAXSIZE * 5)
 
 C worker state 
 	integer  AVAILABLE, WORKING, SEND_FAILED,  RECEIVED

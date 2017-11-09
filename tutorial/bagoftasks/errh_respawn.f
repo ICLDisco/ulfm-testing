@@ -8,7 +8,6 @@ C  Additional copyrights may follow
 C
 C  $HEADER$
 C
-
       subroutine error_handler(communicator, error_code)
 
 c     If a processor failed, acknowledge the error and rebuilt the
@@ -60,7 +59,7 @@ c     Render the communicator useless
             call MPIX_Comm_revoke(communicator, rc)
          endif
 c     And create a new one
-         call MPIX_Comm_shrink(communicator, new_comm,rc)
+         call MPIX_Comm_shrink(communicator, new_comm, rc)
          communicator = new_comm
          oldrank = myrank
          call MPI_Comm_size (communicator, maxworkers, rc)
@@ -73,7 +72,7 @@ c     Gather: old process ranks at location new process
             state(rc-1)       = state(mapsto(rc))
             currentwork(rc-1) = currentwork(mapsto(rc))
          enddo
-
+         maxworkers = maxworkers-1
 c     Create new Communicators:
       elseif (error_code.eq.MPI_ERR_REVOKED) then
          call MPIX_Comm_shrink(communicator, new_comm,rc)
@@ -84,6 +83,7 @@ c     Tell the storage, to map from old to new communicator:
 c     Gather: old process ranks at location new process
          call MPI_Gather(oldrank, 1, MPI_INTEGER4, mapsto,
      $        1, MPI_INTEGER4, 0, communicator, rc)
+         maxworkers = maxworkers-1
 
 c     Strange things happen
       else

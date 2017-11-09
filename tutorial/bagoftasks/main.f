@@ -26,19 +26,20 @@ C REBUILD, BLANK and SHRINK modes.
 C
 C Additionally, this example makes use of the two additional
 C attributes of FT-MPI, which indicate who has died and how
-C many have died. By activating the COLLECTIVE_CHECKWHODIED flag, 
-C a more portable (however also more expensive) version of the 
-C checkwhodied routines is invoked. Attention: the collective 
+C many have died. By activating the COLLECTIVE_CHECKWHODIED flag,
+C a more portable (however also more expensive) version of the
+C checkwhodied routines is invoked. Attention: the collective
 C version of checkwhodied just works for the REBUILD mode!
 C
 C Graham Fagg 2000(c)
 C Edgar Gabriel 2003(c)
 C George Bosilca 2010(c)
+C Aurelien Bouteiller 2016(c)
 
       program fpift
 
       implicit none
-      
+
       include "mpif.h"
       include "mpif-ext.h"
       include "fsolvergen.inc"
@@ -49,16 +50,23 @@ C George Bosilca 2010(c)
       call MPI_Comm_rank (MPI_COMM_WORLD, myrank, rc)
       call MPI_Comm_size (MPI_COMM_WORLD, size, rc)
       write (*,*) "I am [", myrank,"] of [", size, "]"
-      
+
 c     Create my own communicator to play with
       call MPI_Comm_dup(MPI_COMM_WORLD, comm, rc)
 
       if ( myrank.eq.0)  then
-         maxworkers = size
+         maxworkers = size-1
+         if(size.gt.MAXSIZE) then
+            write (*,*) "This program can use a maximum ", MAXSIZE,
+     &                  "processes."
+            call MPI_Abort(MPI_COMM_WORLD, 1)
+         end if
+         write (*,*) "I am [", myrank, "] and I will manage [",
+     &                maxworkers, "] workers"
          call master(comm)
       else
          call slave(comm)
       end if
 
       call MPI_Finalize (rc)
-      end 
+      end
