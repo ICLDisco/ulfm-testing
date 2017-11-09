@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
 /*
- * Copyright (c) 2013-2014 The University of Tennessee and The University
+ * Copyright (c) 2013-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -73,12 +73,14 @@ int main( int argc, char* argv[] ) {
         do {
             rc = rand();
             rc = rc % np;
+            if(0 == rc) continue; /* 0 used to print resuts */
             if(!faults[rc]) {
                 faults[rc] = 1;
                 break;
             }
         } while(1);
     }
+    if(0 == mf) mf = 1;
 
     /* Am I a victim? */
     victim = faults[rank]? 1 : 0;
@@ -136,7 +138,7 @@ do {
     MPIX_Comm_failure_get_acked(fcomm, &fgrp[nwup]);
     MPI_Group_size(fgrp[nwup], &nf);
     nwup++;
-} while( nf != mf );
+} while( nf < mf );
 
     char str[4096];
     /* print results */
