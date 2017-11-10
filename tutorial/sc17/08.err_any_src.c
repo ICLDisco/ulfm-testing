@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
 /*
- * Copyright (c) 2013-2016 The University of Tennessee and The University
+ * Copyright (c) 2013-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -33,7 +33,6 @@ int main(int argc, char *argv[]) {
         raise(SIGKILL);  /* assume the process dies before sending the message */
     }
 
-    printf("This program will deadlock (intentionally). Run a%s for the corrected version.\n", argv[0]);
     if( 0 != rank ) {
         MPI_Send(&rank, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
     }
@@ -52,13 +51,14 @@ int main(int argc, char *argv[]) {
                 if( MPIX_ERR_PROC_FAILED != eclass ) {
                     MPI_Abort(MPI_COMM_WORLD, rc);
                 }
-                /*
-                 * MPI_ANY_SOURCE is disabled after a failure. How can you
-                 * resume ANY_SOURCE blocking?
-                 */
+                MPIX_Comm_failure_ack(MPI_COMM_WORLD);
+                MPIX_Comm_failure_get_acked(MPI_COMM_WORLD, &group_f);
+                MPI_Group_size(group_f, &nf);
+                MPI_Group_free(&group_f);
                 printf("Failures detected! %d found so far\n", nf);
             }
         }
+        printf("Master received %d messages after detecting %d faults\n", size-nf, nf);
     }
 
     MPI_Finalize();
