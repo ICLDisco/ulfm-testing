@@ -25,6 +25,10 @@ int main(int argc, char *argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+    if( 0 == rank ) {
+        printf("THIS EXAMPLE IS INCOMPLETE and will misbehave or deadlock.\n");
+    }
+
     MPI_Comm_set_errhandler(MPI_COMM_WORLD,
                             MPI_ERRORS_RETURN);
 
@@ -33,7 +37,6 @@ int main(int argc, char *argv[]) {
         raise(SIGKILL);  /* assume the process dies before sending the message */
     }
 
-    printf("This program will deadlock (intentionally). Run a%s for the corrected version.\n", argv[0]);
     if( 0 != rank ) {
         MPI_Send(&rank, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
     }

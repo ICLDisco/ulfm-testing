@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
 /*
- * Copyright (c) 2013-2016 The University of Tennessee and The University
+ * Copyright (c) 2013-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -39,8 +39,9 @@ int main( int argc, char* argv[] ) {
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
     victim = (rank == np-1);
 
-    if( 0 == rank )
-        printf("THIS EXAMPLE WILL DEADLOCK: it is intentionally flawed for illustrative purpose.\n");
+    if( 0 == rank ) {
+        printf("THIS EXAMPLE IS INCOMPLETE and will misbehave or deadlock.\n");
+    }
 
     /* To collect the timings, we need a communicator that still
      *  works after we inject a failure:
