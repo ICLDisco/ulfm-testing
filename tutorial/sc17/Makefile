@@ -15,7 +15,6 @@ FFLAGS += -g
 LDFLAGS = -lm
 
 SOURCES=$(wildcard *.c)
-QSOURCES=$(wildcard q*.c)
 
 APPS=$(SOURCES:.c=)
 
