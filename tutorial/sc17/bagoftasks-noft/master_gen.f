@@ -50,6 +50,8 @@ C     collect the results. In case a worker dies, his work is
 C     marked as 'not done' and redistributed.
       lib_comm = communicator
 
+C     NEED TO PREVENT ABORT ON ERROR
+
  20   continue
 
 C     distribute work

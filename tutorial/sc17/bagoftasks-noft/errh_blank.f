@@ -40,7 +40,7 @@ c     Who I was on the original communicator (for debugging purposes)
       call MPI_Comm_rank(communicator, myrank, rc)
 
 c     A failed process: verify the error code
-      if()
+      if( ... )
 c     Get failed procs group
 c     Get no. of failed procs
 c     Get group from current communicator
