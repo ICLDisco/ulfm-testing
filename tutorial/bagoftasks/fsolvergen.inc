@@ -1,5 +1,5 @@
 C
-C  Copyright (c) 2013-2014 The University of Tennessee and The University
+C  Copyright (c) 2013-2017 The University of Tennessee and The University
 C                          of Tennessee Research Foundation.  All rights
 C                          reserved.
 C  $COPYRIGHT$

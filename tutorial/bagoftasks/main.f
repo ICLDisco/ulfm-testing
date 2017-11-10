@@ -1,5 +1,5 @@
 C
-C  Copyright (c) 2013-2014 The University of Tennessee and The University
+C  Copyright (c) 2013-2017 The University of Tennessee and The University
 C                          of Tennessee Research Foundation.  All rights
 C                          reserved.
 C  $COPYRIGHT$
@@ -54,8 +54,8 @@ C Aurelien Bouteiller 2016(c)
 c     Create my own communicator to play with
       call MPI_Comm_dup(MPI_COMM_WORLD, comm, rc)
 
+      maxworkers = size-1
       if ( myrank.eq.0)  then
-         maxworkers = size-1
          if(size.gt.MAXSIZE) then
             write (*,*) "This program can use a maximum ", MAXSIZE,
      &                  "processes."

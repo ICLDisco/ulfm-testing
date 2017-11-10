@@ -1,5 +1,5 @@
 C
-C  Copyright (c) 2013-2014 The University of Tennessee and The University
+C  Copyright (c) 2013-2017 The University of Tennessee and The University
 C                          of Tennessee Research Foundation.  All rights
 C                          reserved.
 C  $COPYRIGHT$
@@ -18,7 +18,7 @@ csachs
       include "fsolvergen.inc"
 
       integer rc, myrank, comm, howmanydone
-      integer todo, mystate, errh
+      integer todo, slicestodo, mystate, errh
       double precision result
       double precision width
       double precision x, y
@@ -36,7 +36,8 @@ csachs FT
       call MPI_Errhandler_set(lib_comm, errh, rc)
 
 C     for the calculation I will do 
-      width = 1.0 / slices
+      slicestodo  = (1+maxworkers)*slices/MAXSIZE
+      width = 1.0 / slicestodo
   
 C     status 	
       howmanydone = 0
