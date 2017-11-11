@@ -21,11 +21,17 @@ NVCCFLAGS=-m 64 $(MPIINC) \
 LDFLAGS= $(MPILIB) -g
 
 #LINK="$LD $(NVCCFLAGS)"
-LINK="$(LD)"
+LINK=$(LD)
+
+APPS=jacobi_noft jacobi_bckpt
 
 # jacobi_gpu.o 
+all: $(APPS)
 
-jacobi: jacobi_cpu.o main.o
+jacobi_noft: jacobi_cpu_noft.o main.o
+	$(LINK) -o $@ $^
+
+jacobi_bckpt: jacobi_cpu_bckpt.o main.o
 	$(LINK) -o $@ $^
 
 %.o: %.c header.h
@@ -35,4 +41,4 @@ jacobi: jacobi_cpu.o main.o
 	$(NVCC) -c $(CFLAGS) $(NVCCFLAGS) -o $@ $<
 
 clean:
-	rm -f *.o jacobi *~
+	rm -f *.o $(APPS) *~

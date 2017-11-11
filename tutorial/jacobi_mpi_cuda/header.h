@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016      The University of Tennessee and The University
+ * Copyright (c) 2016-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * AUTHOR: George Bosilca
@@ -13,7 +13,7 @@
 #define MPI_TYPE   MPI_FLOAT
 #endif
 
-#define MAX_ITER 667
+#define MAX_ITER 67
 
 /**
  * Helpers macro to compute the displacement of the
@@ -29,11 +29,11 @@ extern "C" {
 #endif
 
 #if defined(HAVE_GPU)
-    int jacobi_gpu(TYPE* om, int N, int M, int P, MPI_Comm comm, TYPE epsilon);
+    int jacobi_gpu(TYPE* om, int NB, int MB, int P, int Q, MPI_Comm comm, TYPE epsilon);
     int preinit_jacobi_gpu(void)
 #endif  /* defined(HAVE_GPU) */
 
-    int jacobi_cpu(TYPE* om, int N, int M, int P, MPI_Comm comm, TYPE epsilon);
+    int jacobi_cpu(TYPE* om, int NB, int MB, int P, int Q, MPI_Comm comm, TYPE epsilon);
     int preinit_jacobi_cpu(void);
 
 #if defined(c_plusplus) || defined(__cplusplus)

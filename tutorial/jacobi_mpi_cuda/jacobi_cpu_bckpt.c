@@ -112,14 +112,15 @@ void print_timings( MPI_Comm scomm,
                             mtwf, Mtwf );
 }
 
-static int MPIX_Comm_replace(MPI_Comm comm, MPI_Comm *newcomm) {
+static int MPIX_Comm_replace(MPI_Comm comm, MPI_Comm *newcomm)
+{
     MPI_Comm icomm, /* the intercomm between the spawnees and the old (shrinked) world */
-             scomm, /* the local comm for each sides of icomm */
-             mcomm; /* the intracomm, merged from icomm */
+        scomm, /* the local comm for each sides of icomm */
+        mcomm; /* the intracomm, merged from icomm */
     MPI_Group cgrp, sgrp, dgrp;
     int rc, flag, rflag, i, nc, ns, nd, crank, srank, drank;
 
-redo:
+ redo:
     if( comm == MPI_COMM_NULL ) { /* am I a new process? */
         /* I am a new spawnee, waiting for my new rank assignment
          * it will be sent by rank 0 in the old world */
@@ -130,8 +131,7 @@ redo:
             MPI_Comm_rank(scomm, &srank);
             printf("Spawnee %d: crank=%d\n", srank, crank);
         }
-    }
-    else {
+    } else {
         /* I am a survivor: Spawn the appropriate number
          * of replacement processes (we check that this operation worked
          * before we procees further) */
