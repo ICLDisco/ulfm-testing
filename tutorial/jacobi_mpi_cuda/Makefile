@@ -1,0 +1,38 @@
+# Copyright (c) 2016      The University of Tennessee and The University
+#                         of Tennessee Research Foundation.  All rights
+#                         reserved.
+# AUTHOR: George Bosilca
+# 
+CC=mpicc
+NVCC=nvcc
+#LD=nvcc
+LD=mpicc
+
+MPIDIR=/home/bosilca/opt/mpi
+MPIINC=-I$(MPIDIR)/include
+MPILIB=-lpthread -L$(MPIDIR)/lib -lmpi
+
+CFLAGS=-g
+NVCCFLAGS=-m 64 $(MPIINC) \
+          --generate-code arch=compute_20,code=sm_20 \
+          --generate-code arch=compute_30,code=sm_30 \
+		  --generate-code arch=compute_35,code=sm_35 \
+		  --generate-code arch=compute_50,code=sm_50
+LDFLAGS= $(MPILIB) -g
+
+#LINK="$LD $(NVCCFLAGS)"
+LINK="$(LD)"
+
+# jacobi_gpu.o 
+
+jacobi: jacobi_cpu.o main.o
+	$(LINK) -o $@ $^
+
+%.o: %.c header.h
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+%.o: %.cu header.h
+	$(NVCC) -c $(CFLAGS) $(NVCCFLAGS) -o $@ $<
+
+clean:
+	rm -f *.o jacobi *~
