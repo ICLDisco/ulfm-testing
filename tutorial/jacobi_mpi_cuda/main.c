@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
     int i, rc, size, rank, NB = -1, MB = -1, P = -1, Q = -1;
     TYPE *om, *som, *border, epsilon=1e-6;
     MPI_Comm parent;
-    
+
     gargv = argv;
     /* get the problem size from the command arguments */
     for( i = 1; i < argc; i++ ) {

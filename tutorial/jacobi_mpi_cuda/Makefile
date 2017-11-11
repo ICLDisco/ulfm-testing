@@ -1,4 +1,4 @@
-# Copyright (c) 2016      The University of Tennessee and The University
+# Copyright (c) 2016-2017 The University of Tennessee and The University
 #                         of Tennessee Research Foundation.  All rights
 #                         reserved.
 # AUTHOR: George Bosilca
@@ -8,11 +8,11 @@ NVCC=nvcc
 #LD=nvcc
 LD=mpicc
 
-MPIDIR=/home/bosilca/opt/mpi
+MPIDIR=${HOME}/opt/mpi
 MPIINC=-I$(MPIDIR)/include
 MPILIB=-lpthread -L$(MPIDIR)/lib -lmpi
 
-CFLAGS=-g
+CFLAGS=-g -Wall
 NVCCFLAGS=-m 64 $(MPIINC) \
           --generate-code arch=compute_20,code=sm_20 \
           --generate-code arch=compute_30,code=sm_30 \
