@@ -1,7 +1,7 @@
 Welcome to the labwork for the MPI Fault Tolerant hands-on.
 ===========================================================
 
-This package and information about it is available from [fault-tolerance.org/fault-tolerance-tutorial/sc17-tutorial](http://fault-tolerance.org/fault-tolerance-tutorial/sc17-tutorial/)
+This package and information about it is available from [fault-tolerance.org/sc17](http://fault-tolerance.org/sc17)
 
 This package contains
 ---------------------
