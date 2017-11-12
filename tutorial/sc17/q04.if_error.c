@@ -103,8 +103,8 @@ void print_iterations( MPI_Comm scomm,
     /* Storage for min and max times */
     int mi, Mi;
 
-    MPI_Reduce( &i, &mi, 1, MPI_INTEGER, MPI_MIN, 0, scomm );
-    MPI_Reduce( &i, &Mi, 1, MPI_INTEGER, MPI_MAX, 0, scomm );
+    MPI_Reduce( &i, &mi, 1, MPI_INT, MPI_MIN, 0, scomm );
+    MPI_Reduce( &i, &Mi, 1, MPI_INT, MPI_MAX, 0, scomm );
 
     /* >>??? What do you expect about iterations here? ???<< */
     if( 0 == rank ) printf(
