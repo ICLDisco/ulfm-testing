@@ -6,8 +6,8 @@
 switch($1)
 
     case load:
-        alias make 'docker run -v $PWD:$PWD -w $PWD abouteiller/mpi-ft-ulfm make'
-        alias mpirun 'docker run -v $(pwd):$(pwd) -w $(pwd) abouteiller/mpi-ft-ulfm mpirun --oversubscribe -mca btl tcp,self'
+        alias make 'docker run -v $PWD:$PWD:Z -w $PWD abouteiller/mpi-ft-ulfm make'
+        alias mpirun 'docker run -v $(pwd):$(pwd):Z -w $(pwd) abouteiller/mpi-ft-ulfm mpirun --oversubscribe -mca btl tcp,self'
         breaksw
     case unload:
         unalias make

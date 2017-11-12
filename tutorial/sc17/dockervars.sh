@@ -5,11 +5,11 @@
 
 case _$1 in
     _|_load)
-        alias make='docker run -v $PWD:$PWD -w $PWD abouteiller/mpi-ft-ulfm make'
-        alias mpirun='docker run -v $(pwd):$(pwd) -w $(pwd) abouteiller/mpi-ft-ulfm mpirun --oversubscribe -mca btl tcp,self'
-        alias mpiexec='docker run -v $(pwd):$(pwd) -w $(pwd) abouteiller/mpi-ft-ulfm mpiexec --oversubscribe -mca btl tcp,self'
-        alias mpicc='docker run -v $(pwd):$(pwd) -w $(pwd) abouteiller/mpi-ft-ulfm mpicc'
-        alias mpif90='docker run -v $(pwd):$(pwd) -w $(pwd) abouteiller/mpi-ft-ulfm mpif90'
+        alias make='docker run -v $PWD:$PWD:Z -w $PWD abouteiller/mpi-ft-ulfm make'
+        alias mpirun='docker run -v $(pwd):$(pwd):Z -w $(pwd) abouteiller/mpi-ft-ulfm mpirun --oversubscribe -mca btl tcp,self'
+        alias mpiexec='docker run -v $(pwd):$(pwd):Z -w $(pwd) abouteiller/mpi-ft-ulfm mpiexec --oversubscribe -mca btl tcp,self'
+        alias mpicc='docker run -v $(pwd):$(pwd):Z -w $(pwd) abouteiller/mpi-ft-ulfm mpicc'
+        alias mpif90='docker run -v $(pwd):$(pwd):Z -w $(pwd) abouteiller/mpi-ft-ulfm mpif90'
         echo "#  Alias set for 'make', 'mpirun', 'mpiexec', 'mpicc', 'mpif90'."
         echo "#    These commands now run from the ULFM Docker image."
         echo "#    Run . $0 unload to remove these aliases."
