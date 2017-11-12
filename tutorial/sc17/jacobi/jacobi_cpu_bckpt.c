@@ -99,6 +99,7 @@ static void errhandler_respawn(MPI_Comm* pcomm, int* errcode, ...)
 }
 
 void print_timings( MPI_Comm scomm,
+                    int rank,
                     double twf )
 {
     /* Storage for min and max times */
@@ -415,7 +416,7 @@ int jacobi_cpu(TYPE* matrix, int NB, int MB, int P, int Q, MPI_Comm comm, TYPE e
     } while((iteration < MAX_ITER) && (sqrt(diff_norm) > epsilon));
 
     twf = MPI_Wtime() - start;
-    print_timings( world, twf );
+    print_timings( world, rank, twf );
 
     if(matrix != om) free(om);
     else free(nm);

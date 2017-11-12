@@ -1,7 +1,13 @@
-/**
- * Copyright (c) 2016-2017 The University of Tennessee and The University
+/* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
+/*
+ * Copyright (c) 2013-2017 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
+ * $COPYRIGHT$
+ *
+ * Additional copyrights may follow
+ *
+ * $HEADER$
  * AUTHOR: George Bosilca
  */
 
@@ -10,6 +16,21 @@
 #include <stdio.h>
 #include "header.h"
 #include <stdlib.h>
+
+void print_timings( MPI_Comm scomm,
+                   int rank,
+                   double twf )
+{
+    /* Storage for min and max times */
+    double mtwf, Mtwf;
+    
+    MPI_Reduce( &twf, &mtwf, 1, MPI_DOUBLE, MPI_MIN, 0, scomm );
+    MPI_Reduce( &twf, &Mtwf, 1, MPI_DOUBLE, MPI_MAX, 0, scomm );
+    
+    if( 0 == rank ) printf( "## Timings ########### Min         ### Max         ##\n"
+                           "Loop    (w/ fault)  # %13.5e # %13.5e\n",
+                           mtwf, Mtwf );
+}
 
 /**
  * We are using a Successive Over Relaxation (SOR)
@@ -22,8 +43,8 @@ TYPE SOR1( TYPE* nm, TYPE* om,
     TYPE _W = 2.0 / (1.0 + M_PI / (TYPE)nb);
     int i, j, pos;
 
+    for(j = 0; j < mb; j++) {
     for(i = 0; i < nb; i++) {
-        for(j = 0; j < mb; j++) {
             pos = 1 + i + (j+1) * (nb+2);
             nm[pos] = (1 - _W) * om[pos] +
                       _W / 4.0 * (nm[pos - 1] +
@@ -46,6 +67,7 @@ int jacobi_cpu(TYPE* matrix, int NB, int MB, int P, int Q, MPI_Comm comm, TYPE e
     int i, iter = 0;
     int rank, size, ew_rank, ew_size, ns_rank, ns_size;
     TYPE *om, *nm, *tmpm, *send_east, *send_west, *recv_east, *recv_west, diff_norm;
+    double start, twf=0; /* timings */
     MPI_Comm ns, ew;
     MPI_Request req[8] = {MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL,
                           MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL};
@@ -54,7 +76,7 @@ int jacobi_cpu(TYPE* matrix, int NB, int MB, int P, int Q, MPI_Comm comm, TYPE e
     MPI_Comm_size(comm, &size);
 
     om = matrix;
-    nm = (TYPE*)malloc(sizeof(TYPE) * (NB+2) * (MB+2));
+    nm = (TYPE*)calloc(sizeof(TYPE), (NB+2) * (MB+2));
     send_east = (TYPE*)malloc(sizeof(TYPE) * MB);
     send_west = (TYPE*)malloc(sizeof(TYPE) * MB);
     recv_east = (TYPE*)malloc(sizeof(TYPE) * MB);
@@ -68,6 +90,7 @@ int jacobi_cpu(TYPE* matrix, int NB, int MB, int P, int Q, MPI_Comm comm, TYPE e
     MPI_Comm_size(ew, &ew_size);
     MPI_Comm_rank(ew, &ew_rank);
 
+    start = MPI_Wtime();
     do {
         /* post receives from the neighbors */
         if( 0 != ns_rank )
@@ -106,14 +129,17 @@ int jacobi_cpu(TYPE* matrix, int NB, int MB, int P, int Q, MPI_Comm comm, TYPE e
          */
         diff_norm = SOR1(nm, om, NB, MB);
 
-        tmpm = om; om = nm; nm = tmpm;  /* swap the 2 matrices */
-        iter++;
         MPI_Allreduce(MPI_IN_PLACE, &diff_norm, 1, MPI_TYPE, MPI_SUM,
-                      MPI_COMM_WORLD);
+                      comm);
         if(0 == rank) {
             printf("Iteration %4d norm %f\n", iter, sqrtf(diff_norm));
         }
+        tmpm = om; om = nm; nm = tmpm;  /* swap the 2 matrices */
+        iter++;
     } while((iter < MAX_ITER) && (sqrt(diff_norm) > epsilon));
+
+    twf = MPI_Wtime() - start;
+    print_timings( comm, rank, twf );
 
     if(matrix != om) free(om);
     else free(nm);
