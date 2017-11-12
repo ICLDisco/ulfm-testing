@@ -1,6 +1,8 @@
 Welcome to the labwork for the MPI Fault Tolerant hands-on.
 ===========================================================
 
+This package and information about it is available from [fault-tolerance.org/fault-tolerance-tutorial/sc17-tutorial](http://fault-tolerance.org/fault-tolerance-tutorial/sc17-tutorial/)
+
 This package contains
 ---------------------
 
@@ -8,7 +10,7 @@ This package contains
    ULFM Open MPI 2.0rc.
 2. The tutorial hands-on example.
 3. More examples, tests, information, as well as the latest draft of the
-   ULFM specification can be found on [fault-tolerance.org](http://fault-tolerance.org/ulfm/ulfm-specification/)
+   ULFM specification can be found on [fault-tolerance.org/ulfm/ulfm-specification](http://fault-tolerance.org/ulfm/ulfm-specification/)
 
 Using the Docker Image
 ----------------------
@@ -36,6 +38,9 @@ the generated examples in the Docker machine using `mpirun -np 10 example`.
 
 
 
+
+
+
 ----------------------------------------------------------------------------
 
 Alternative: Compiling ULFM Open MPI from source
@@ -53,4 +58,3 @@ README.
 
 Expect the compilation to last between 15 to 20 minutes depending on your
 setup.
-
