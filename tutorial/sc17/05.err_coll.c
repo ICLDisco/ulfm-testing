@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 
     if( rank == (size/4) ) raise(SIGKILL);
     MPI_Bcast(&value, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-//  MPI_Allreduce(MPI_INPLACE, &value, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+//  MPI_Allreduce(MPI_IN_PLACE, &value, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 
     /* Look at the output. Can you explain?
      * What is different between the Bcast and Allreduce that explain your
