@@ -1,5 +1,5 @@
 !
-! Copyright (c) 2015-2016 The University of Tennessee and The University
+! Copyright (c) 2015-2018 The University of Tennessee and The University
 !                         of Tennessee Research Foundation.  All rights
 !                         reserved.
 !
@@ -24,6 +24,7 @@
       call MPI_COMM_SIZE( MPI_COMM_WORLD, size, ierr )
       call MPI_COMM_SET_ERRHANDLER( MPI_COMM_WORLD, MPI_ERRORS_RETURN,
      &                               ierr )
+      call MPI_BARRIER( MPI_COMM_WORLD, ierr )
       if ( rank .eq. 0) then
           stop
       endif
