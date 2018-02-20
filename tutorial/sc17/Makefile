@@ -20,6 +20,10 @@ APPS=$(SOURCES:.c=)
 
 all: $(APPS)
 
+docker:
+	docker pull abouteiller/mpi-ft-ulfm
+	$(SHELL) dockervars.sh help
+
 .c.o:
 	$(CC) -c $(DEBUG) $(CFLAGS) $(LDFLAGS) $*.c
 
@@ -29,4 +33,4 @@ all: $(APPS)
 clean:
 	rm -rf $(APPS) $(APPS:=.dSYM) *.o *.x dump* core*
 
-.PHONY: all clean
+.PHONY: docker all clean

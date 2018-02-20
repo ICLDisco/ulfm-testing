@@ -28,11 +28,11 @@ Using the Docker Image
 2. In a terminal, Run `docker run hello-world` to verify that the docker
 installation works.
 3. Load the pre-compiled ULFM Docker machine into your Docker installation
-`docker pull abouteiller/mpi-ft-ulfm`.
-4. Source the docker aliases in a terminal, this will redirect the "make"
-and "mpirun" command in the local shell to execute in the Docker machine.
-`source dockervars.sh`. On windows powershell `. dockervars.ps1`.
-5. Go to the tutorial examples directory. You can now type `make` to
+`make docker` (that will automate `docker pull abouteiller/mpi-ft-ulfm`).
+4. Source the docker aliases in a terminal, `source dockervars.sh`; for
+Windows powershell do `. dockervars.ps1`. This will redirect the "make" and 
+"mpirun" commands in the local shell to execute from the Docker machine.
+5. In the tutorial examples directory. You can now type `make` to
 compile the examples using the Docker provided "mpicc", and you can execute
 the generated examples in the Docker machine using `mpirun -np 10 example`.
 
