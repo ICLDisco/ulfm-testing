@@ -31,7 +31,7 @@ installation works.
 `docker pull abouteiller/mpi-ft-ulfm`.
 4. Source the docker aliases in a terminal, this will redirect the "make"
 and "mpirun" command in the local shell to execute in the Docker machine.
-`source dockervars.sh`. On windows `call dockervars.bat`.
+`source dockervars.sh`. On windows powershell `. dockervars.ps1`.
 5. Go to the tutorial examples directory. You can now type `make` to
 compile the examples using the Docker provided "mpicc", and you can execute
 the generated examples in the Docker machine using `mpirun -np 10 example`.
