@@ -30,15 +30,23 @@ installation works.
 3. Load the pre-compiled ULFM Docker machine into your Docker installation
 `make docker` (that will automate `docker pull abouteiller/mpi-ft-ulfm`).
 4. Source the docker aliases in a terminal, `source dockervars.sh`; for
-Windows powershell do `. dockervars.ps1`. This will redirect the "make" and 
+Windows powershell do `. dockervars.ps1`. This will redirect the "make" and
 "mpirun" commands in the local shell to execute from the Docker machine.
 5. In the tutorial examples directory. You can now type `make` to
 compile the examples using the Docker provided "mpicc", and you can execute
 the generated examples in the Docker machine using `mpirun -np 10 example`.
 
 
-
-
+__A note about Docker with SELinux__ The `dockervars.sh` script remapping
+uses Docker volumes to expose the source code of the tutorial examples to the
+`mpicc` compiler inside the docker machine. In SELinux enabled machines,
+exposing a host directory to the docker machine requires that this directory
+is properly labeled; [More information](https://www.projectatomic.io/blog/2015/06/using-volumes-with-docker-can-cause-problems-with-selinux/).
+The remapping script employs the automatic relabeling flag `:V` to ensure
+proper labelling of the exposed directories. If you want to finely control
+which directories are labeled for docker usage, as an alternative, you may
+suppress the `:V` flag from the script and explicitly label the examples
+directory with `chcon`
 
 
 ----------------------------------------------------------------------------
