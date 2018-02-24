@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <unistd.h>
 
 static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     MPI_Comm comm = *pcomm;
