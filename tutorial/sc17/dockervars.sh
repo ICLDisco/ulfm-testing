@@ -3,30 +3,36 @@
 # Load some alias to compile and run with the docker mpicc/mpif90/mpirun
 #
 
+if [ $0 == $BASH_SOURCE ]; then
+    echo "source $0 load # This file needs to be sourced, not executed."
+    exit 2
+fi
+
 case _$1 in
     _|_load)
+        docker pull abouteiller/mpi-ft-ulfm
         function make {
-            docker run -v $PWD:/wd:Z -w /wd abouteiller/mpi-ft-ulfm make $@
+            docker run -v $PWD:/sandbox:Z abouteiller/mpi-ft-ulfm make $@
         }
         function ompi_info {
             docker run abouteiller/mpi-ft-ulfm ompi_info $@
         }
         function mpirun {
-            docker run -v $PWD:/wd:Z -w /wd abouteiller/mpi-ft-ulfm mpirun --oversubscribe -mca btl tcp,self $@
+            docker run -v $PWD:/sandbox:Z abouteiller/mpi-ft-ulfm mpirun --oversubscribe -mca btl tcp,self $@
         }
         function mpiexec {
-            docker run -v $PWD:/wd:Z -w /wd abouteiller/mpi-ft-ulfm mpiexec --oversubscribe -mca btl tcp,self $@
+            docker run -v $PWD:/sandbox:Z abouteiller/mpi-ft-ulfm mpiexec --oversubscribe -mca btl tcp,self $@
         }
         function mpicc {
-            docker run -v $PWD:/wd:Z -w /wd abouteiller/mpi-ft-ulfm mpicc $@
+            docker run -v $PWD:/sandbox:Z abouteiller/mpi-ft-ulfm mpicc $@
         }
         function mpif90 {
-            docker run -v $PWD:/wd:Z -w /wd abouteiller/mpi-ft-ulfm mpif90 $@
+            docker run -v $PWD:/sandbox:Z abouteiller/mpi-ft-ulfm mpif90 $@
         }
         echo "#  Function alias set for 'make', 'mpirun', 'mpiexec', 'mpicc', 'mpif90'."
+        echo "source $BASH_SOURCE unload # remove these aliases."
         echo "#    These commands now run from the ULFM Docker image."
         mpirun --version
-        echo "#    Run . $0 unload to remove these aliases."
         ;;
     _unload)
         unset -f make
@@ -40,8 +46,8 @@ case _$1 in
     *)
         echo "#  This script is designed to load aliases for for 'make', 'mpirun', 'mpiexec', 'mpicc', 'mpif90'."
         echo "#  After this script is sourced in your local shell, these commands would run from the ULFM Docker image."
-        echo ". $0 load: alias make and mpirun in the current shell"
-        echo ". $0 unload: remove aliases from the current shell"
+        echo "source $BASH_SOURCE load # alias make, mpirun, etc. in the current shell"
+        echo "source $BASH_SOURCE unload # remove aliases from the current shell"
 esac
 
 

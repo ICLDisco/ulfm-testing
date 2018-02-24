@@ -1,16 +1,23 @@
 Welcome to the labwork for the MPI Fault Tolerant hands-on.
 ===========================================================
 
-This package and information about it is available from [fault-tolerance.org/sc17](http://fault-tolerance.org/sc17)
+This package and information about it is available from [fault-tolerance.org/sc17](http://fault-tolerance.org/sc17).
+
+This hands-on demonstrates how to use User Level Failure Mitigation
+(ULFM) MPI to design typical application fault-tolerance patterns.
+More examples, source code for the ULFM MPI implementation, and 
+resources for designed fault tolerant HPC applications can
+be accessed from [fault-tolerance.org](http://fault-tolerance.org).
+The latest draft of the ULFM specification can be found
+at [fault-tolerance.org/ulfm/ulfm-specification](http://fault-tolerance.org/ulfm/ulfm-specification/).
+
 
 This package contains
 ---------------------
 
-1. Instructions to obtain a Docker Image of the pre-compiled version of
-   ULFM Open MPI 2.0rc.
-2. The tutorial hands-on example.
-3. More examples, tests, information, as well as the latest draft of the
-   ULFM specification can be found on [fault-tolerance.org/ulfm/ulfm-specification](http://fault-tolerance.org/ulfm/ulfm-specification/)
+1. The tutorial hands-on examples.
+2. Scripts to obtain and setup your shell for executing the examples in the
+   pre-compiled Docker version of ULFM Open MPI 2.0rc.
 
 Using the Docker Image
 ----------------------
@@ -27,14 +34,20 @@ Using the Docker Image
   `yum install docker`, `apt-get docker-io`, etc.)
 2. In a terminal, Run `docker run hello-world` to verify that the docker
 installation works.
-3. Load the pre-compiled ULFM Docker machine into your Docker installation
-`make docker` (that will automate `docker pull abouteiller/mpi-ft-ulfm`).
-4. Source the docker aliases in a terminal, `source dockervars.sh`; for
-Windows powershell do `. dockervars.ps1`. This will redirect the "make" and
-"mpirun" commands in the local shell to execute from the Docker machine.
-5. In the tutorial examples directory. You can now type `make` to
+3. Load the docker script to map the `make`, `mpirun` and friends command to
+execute from the Docker machine on the local directory.
+  + In Linux, source the docker aliases in a terminal, `source dockervars.sh`;
+  or `source dockervars.csh` (See SELinux note below.)
+  + In Windows Powershell, `. dockervars.ps1`. In certain versions of Windows
+  you need to enable script execution, which can be set temporarily for the
+  duration of your Powershell session by issuing the command
+  `$env:PSExecutionPolicyPreference="unrestricted"`
+  + This script will also automate pulling the precompiled ULFM docker image
+  (i.e., it issues `docker pull abouteiller/mpi-ft-ulfm`.)
+4. In the tutorial examples directory. You can now type `make` to
 compile the examples using the Docker provided "mpicc", and you can execute
-the generated examples in the Docker machine using `mpirun -np 10 example`.
+the generated examples in the Docker machine using `mpirun -np 10 example`
+(In Windows, do **not** use `.\example`.)
 
 
 __A note about Docker with SELinux__ The `dockervars.sh` script remapping
@@ -46,7 +59,7 @@ The remapping script employs the automatic relabeling flag `:V` to ensure
 proper labelling of the exposed directories. If you want to finely control
 which directories are labeled for docker usage, as an alternative, you may
 suppress the `:V` flag from the script and explicitly label the examples
-directory with `chcon`
+directory with `chcon`.
 
 
 ----------------------------------------------------------------------------
