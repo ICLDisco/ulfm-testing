@@ -1,18 +1,12 @@
-#ULFM_PREFIX=/Users/bosilca/opt/mpi
-#CC = $(shell PATH=$(ULFM_PREFIX)/bin:$(PATH) which mpicc)
-#FC = $(shell PATH=$(ULFM_PREFIX)/bin:$(PATH) which mpif90)
-#ifeq ($(CC),)
-#  $(error ULFM mpicc not found with ULFM_PREFIX=$(ULFM_PREFIX))
-#endif
+# Copyright (c) 2015-2018 The University of Tennessee and The University
+#                         of Tennessee Research Foundation.  All rights
+#                         reserved.
+#
 CC=mpicc
 FC=mpif77
 CFLAGS += -g
 FFLAGS += -g
 
-#LDFLAGS =  -L$(HOME)/lib/GotoBLAS2   \
-#		   -L$(HOME)/lib/scalapack-1.8.0 \
-#		   -L$(HOME)/lib/lapack-3.3.0 \
-#		   -L$(HOME)/lib/BLACS/LIB
 LDFLAGS = -lm
 
 SOURCES=$(wildcard *.c)
