@@ -6,13 +6,15 @@
 CC=mpicc
 LD=mpicc
 
+VELOCLIB=-lveloc-client
+
 CFLAGS=-g -Wall
 LDFLAGS= -g
 LIBS = -lpthread
 
 LINK=$(LD) $(LDFLAGS)
 
-APPS=jacobi_noft jacobi_ckpt_buddy
+APPS=jacobi_noft jacobi_ckpt_buddy jacobi_ckpt_veloc
 
 all: $(APPS)
 
@@ -21,6 +23,9 @@ jacobi_noft: jacobi_cpu_noft.o main.o
 
 jacobi_ckpt_buddy: jacobi_cpu_ckpt_buddy.o main.o
 	$(LINK) -o $@ $^ $(LIBS)
+
+jacobi_ckpt_veloc: jacobi_cpu_ckpt_veloc.o main.o
+	$(LINK) -o $@ $^ $(VELOCLIB) $(LIBS)
 
 %.o: %.c header.h
 	$(CC) -c $(CFLAGS) -o $@ $<
