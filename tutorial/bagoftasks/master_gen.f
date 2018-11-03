@@ -1,5 +1,5 @@
 C
-C  Copyright (c) 2013-2017 The University of Tennessee and The University
+C  Copyright (c) 2013-2018 The University of Tennessee and The University
 C                          of Tennessee Research Foundation.  All rights
 C                          reserved.
 C  $COPYRIGHT$
@@ -52,8 +52,8 @@ C     The loop contains of two parts: distribute work, and
 C     collect the results. In case a worker dies, his work is
 C     marked as 'not done' and redistributed.
       lib_comm = communicator
-      call MPI_Errhandler_create(error_handler, errh, rc)
-      call MPI_Errhandler_set(lib_comm, errh, rc)
+      call MPI_Comm_create_errhandler(error_handler, errh, rc)
+      call MPI_Comm_set_errhandler(lib_comm, errh, rc)
 
  20   continue
 

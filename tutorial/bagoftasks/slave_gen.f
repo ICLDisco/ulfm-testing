@@ -1,5 +1,5 @@
 C
-C  Copyright (c) 2013-2017 The University of Tennessee and The University
+C  Copyright (c) 2013-2018 The University of Tennessee and The University
 C                          of Tennessee Research Foundation.  All rights
 C                          reserved.
 C  $COPYRIGHT$
@@ -32,8 +32,8 @@ csachs FT
       call MPI_Comm_rank( comm, myrank, rc )
       lib_comm = comm
 
-      call MPI_Errhandler_create(error_handler, errh, rc)
-      call MPI_Errhandler_set(lib_comm, errh, rc)
+      call MPI_Comm_create_errhandler(error_handler, errh, rc)
+      call MPI_Comm_set_errhandler(lib_comm, errh, rc)
 
 C     for the calculation I will do 
       slicestodo  = (1+maxworkers)*slices/MAXSIZE
