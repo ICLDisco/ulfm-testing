@@ -5,16 +5,16 @@
 
 ifndef ULFM_PREFIX
 
-CC = $(shell command -v mpicc)
-FC = $(shell command -v mpif90)
+CC = $(shell which mpicc)
+FC = $(shell which mpif90)
 ifeq ($(CC),)
   $(error mpicc not found)
 endif
 
 else
 
-CC = $(shell PATH=$(ULFM_PREFIX)/bin:$(PATH) command -v mpicc)
-FC = $(shell PATH=$(ULFM_PREFIX)/bin:$(PATH) command -v mpif90)
+CC = $(shell PATH=$(ULFM_PREFIX)/bin:$(PATH) which mpicc)
+FC = $(shell PATH=$(ULFM_PREFIX)/bin:$(PATH) which mpif90)
 ifeq ($(CC),)
   $(error ULFM mpicc not found with ULFM_PREFIX=$(ULFM_PREFIX))
 endif
