@@ -11,16 +11,18 @@ else
     set name = $name[2]
 endif
 
+set image = "abouteiller/mpi-ft-ulfm"
+
 switch(_$1)
     case _:
     case _load:
-        docker pull abouteiller/mpi-ft-ulfm
-        alias make 'docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm make'
-        alias ompi_info 'docker run abouteiller/mpi-ft-ulfm ompi_info'
-        alias mpirun 'docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm mpirun --oversubscribe -mca btl tcp,self'
-        alias mpiexec 'docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm mpiexec --oversubscribe -mca btl tcp,self'
-        alias mpicc 'docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm mpicc'
-        alias mpif90 'docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm mpif90'
+        docker pull $image
+        alias make 'docker run -v ${PWD}:/sandbox:Z $image make'
+        alias ompi_info 'docker run $image ompi_info'
+        alias mpirun 'docker run -v ${PWD}:/sandbox:Z $image mpirun --oversubscribe -mca btl tcp,self'
+        alias mpiexec 'docker run -v ${PWD}:/sandbox:Z $image mpiexec --oversubscribe -mca btl tcp,self'
+        alias mpicc 'docker run -v ${PWD}:/sandbox:Z $image mpicc'
+        alias mpif90 'docker run -v ${PWD}:/sandbox:Z $image mpif90'
         echo "#  Function alias set for 'make', 'mpirun', 'mpiexec', 'mpicc', 'mpif90'."
         echo "source $name unload # remove these aliases."
         echo "#    These commands now run from the ULFM Docker image."

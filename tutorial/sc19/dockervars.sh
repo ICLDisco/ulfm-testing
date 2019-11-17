@@ -8,26 +8,31 @@ if [ $0 == $BASH_SOURCE ]; then
     exit 2
 fi
 
+ulfm_image=abouteiller/mpi-ft-ulfm
+
 case _$1 in
     _|_load)
-        docker pull abouteiller/mpi-ft-ulfm
+        docker pull $ulfm_image
         function make {
-            docker run -v $PWD:/sandbox:Z abouteiller/mpi-ft-ulfm make $@
+            docker run -v $PWD:/sandbox:Z $ulfm_image make $@
         }
         function ompi_info {
-            docker run abouteiller/mpi-ft-ulfm ompi_info $@
+            docker run $ulfm_image ompi_info $@
         }
         function mpirun {
-            docker run -v $PWD:/sandbox:Z abouteiller/mpi-ft-ulfm mpirun --oversubscribe -mca btl tcp,self $@
+            docker run -v $PWD:/sandbox:Z $ulfm_image mpirun --oversubscribe -mca btl tcp,self $@
         }
         function mpiexec {
-            docker run -v $PWD:/sandbox:Z abouteiller/mpi-ft-ulfm mpiexec --oversubscribe -mca btl tcp,self $@
+            docker run -v $PWD:/sandbox:Z $ulfm_image mpiexec --oversubscribe -mca btl tcp,self $@
+        }
+        function mpiexec+gdb {
+            docker run -v $PWD:/sandbox:Z --cap-add=SYS_PTRACE --security-opt seccomp=unconfined $ulfm_image mpiexec --oversubscribe -mca btl tcp,self $@
         }
         function mpicc {
-            docker run -v $PWD:/sandbox:Z abouteiller/mpi-ft-ulfm mpicc $@
+            docker run -v $PWD:/sandbox:Z $ulfm_image mpicc $@
         }
         function mpif90 {
-            docker run -v $PWD:/sandbox:Z abouteiller/mpi-ft-ulfm mpif90 $@
+            docker run -v $PWD:/sandbox:Z $ulfm_image mpif90 $@
         }
         echo "#  Function alias set for 'make', 'mpirun', 'mpiexec', 'mpicc', 'mpif90'."
         echo "source $BASH_SOURCE unload # remove these aliases."
