@@ -257,6 +257,15 @@ redo:
                 MPIX_Comm_revoke(icomm);
                 MPI_Comm_free(&icomm);
             }
+            else if( MPIX_ERR_PROC_FAILED != rc ) {
+                /* Unlike other MPI calls, there is a good chance we get some
+                 * unexpected error code from spawn (e.g., not enough slots to
+                 * spawn new processes).
+                 */
+                MPI_Error_string(rc, estr, &strl);
+                fprintf(stderr, "%04d: comm_spawn failed with an unexpected error: local return with %s (%d)\n", rank, estr, rc);
+                MPI_Abort(MPI_COMM_WORLD, rc);
+            }
             MPI_Comm_free(&scomm);
             if( verbose ) fprintf(stderr, "%04d: comm_spawn failed, redo\n", rank);
             goto redo;
