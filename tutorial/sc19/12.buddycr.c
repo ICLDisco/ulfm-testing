@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
 /*
- * Copyright (c) 2013-2017 The University of Tennessee and The University
+ * Copyright (c) 2013-2020 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -83,7 +83,7 @@ static int app_reload_ckpt(MPI_Comm comm) {
                  comm, MPI_STATUS_IGNORE);
 
     if( -1 == iteration && -1 == ckpt_iteration ) {
-        fprintf(stderr, "Buddy checkpointing cannot restart from this failures because both me and my buddy have lost our checkpoints...\n");
+        fprintf(stderr, "Rank %04d: Buddy checkpointing cannot restart from these failures because my buddy %04d wants the checkpoint I have lost...\n", rank, lbuddy(rank));
         MPI_Abort(comm, -1);
     }
 
@@ -136,7 +136,6 @@ static void errhandler_respawn(MPI_Comm* pcomm, int* errcode, ...) {
     if( MPIX_ERR_PROC_FAILED != eclass &&
         MPIX_ERR_REVOKED != eclass ) {
         fprintf(stderr, "%04d: errhandler invoked with unknown error %s\n", rank, estr);
-        raise(SIGSEGV);
         MPI_Abort(MPI_COMM_WORLD, *errcode);
     }
     if( verbose ) {
