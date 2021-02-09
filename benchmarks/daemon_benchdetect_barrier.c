@@ -80,7 +80,8 @@ int main( int argc, char* argv[] ) {
      * the barrier, by the semantic of the barrier it is thereby
      * impossible for any rank to complete succesfully! */
     if( rc != MPI_ERR_PROC_FAILED ) MPI_Abort( MPI_COMM_WORLD, rc );
- // print_timings( scomm, tff, twf );
+
+    print_timings( scomm, tff, twf );
 
     /* Even though fcomm contains failed processes, we free it:
      *  this gives an opportunity for MPI to reclaim the resources. */
@@ -93,8 +94,8 @@ int main( int argc, char* argv[] ) {
 }
 
 void print_timings( MPI_Comm scomm,
-        double tff,
-        double twf ) {
+                    double tff,
+                    double twf ) {
     /* Storage for min and max times */
     double mtff, Mtff, mtwf, Mtwf;
 
