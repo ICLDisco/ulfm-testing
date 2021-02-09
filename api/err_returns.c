@@ -10,6 +10,15 @@
  * $HEADER$
  */
 
+/* basic test to check if we can survive a process failure during a collective
+ * operation. Nothing is done to recover, but we use the knowledge of where
+ * the failures will be injected to create a preexisting communicator in which
+ * there are no failures, which we verify still works after our failure has
+ * been reported.
+ *
+ * PASSED if timings are printed out at the end;
+ * FAILED if abort (or deadlock).
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -90,7 +99,8 @@ int main( int argc, char* argv[] ) {
         "## Timings ########### Min         ### Max         ##\n"
         "Barrier (no fault)  # %13.5e # %13.5e\n"
         "Barrier (new fault) # %13.5e # %13.5e\n"
-        "Barrier (old fault) # %13.5e # %13.5e\n",
+        "Barrier (old fault) # %13.5e # %13.5e\n"
+        "\tTEST PASSED\n",
         mtff, Mtff, mtf1, Mtf1, mtf2, Mtf2 );
 
     MPI_Comm_free( &fcomm );

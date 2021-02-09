@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 The University of Tennessee and The University
+ * Copyright (c) 2014-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
@@ -8,6 +8,13 @@
  * Additional copyrights may follow
  *
  * $HEADER$
+ */
+
+/* This test checks that the correct number of failures is reported from
+ * ack/getack calls, based on known timing of fault injection.
+ *
+ * PASSED if all output lines from non-failed procs contain TEST PASSED.
+ * FAILED if abort (or deadlock) or any of the ranks reports TEST FAILED.
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,19 +51,19 @@ int main( int argc, char* argv[] ) {
     if( rc != MPI_SUCCESS ) {
         kf++;
         if( gf == MPI_GROUP_EMPTY ) {
-            fprintf( stderr, "Rank %d: :( The group of failed processes is empty. At least %d failure should have been reported though\n", rank, kf );
+            fprintf( stderr, "Rank %02d: TEST FAILED! The group of failed processes is empty. At least %d failure should have been reported though\n", rank, kf );
             sleep(1);
             MPI_Abort( MPI_COMM_WORLD, -1 );
         } else if( gs != kf ) {
-            fprintf( stderr, "Rank %d: :( The group of failed processes is of size %d / %d.\n", rank, gs, kf );
+            fprintf( stderr, "Rank %02d: TEST FAILED! The group of failed processes is of size %d / %d.\n", rank, gs, kf );
             sleep(1);
             MPI_Abort( MPI_COMM_WORLD, -2 );
         }
     }
     if( gf == MPI_GROUP_EMPTY ) {
-        printf( "Rank %d: :) The group of failed processes is GROUP_EMPTY / %d.\n", rank, kf );
+        printf( "Rank %02d: TEST PASSED  The group of failed processes is GROUP_EMPTY / %d.\n", rank, kf );
     } else {
-        printf( "Rank %d: :) The group of failed processes is of size %d / %d.\n", rank, gs, kf );
+        printf( "Rank %02d: TEST PASSED  The group of failed processes is of size %d / %d.\n", rank, gs, kf );
     }
     MPI_Group_free( &gf );
 
@@ -73,7 +80,7 @@ int main( int argc, char* argv[] ) {
     rc = MPI_Barrier( commw );
     kf = 2;
     if( rc == MPI_SUCCESS ) {
-        fprintf( stderr, "Rank %d: :( The barrier completed, but rank %d failed (injection) before entering, this is impossible\n", rank, np );
+        fprintf( stderr, "Rank %02d: TEST FAILED! The barrier completed, but rank %d failed (injection) before entering, this is impossible\n", rank, np );
         sleep(1);
         MPI_Abort( MPI_COMM_WORLD, -3 );
     }
@@ -81,17 +88,17 @@ int main( int argc, char* argv[] ) {
     MPIX_Comm_failure_ack( commw );
     MPIX_Comm_failure_get_acked( commw, &gf );
     if( gf == MPI_GROUP_EMPTY ) {
-        fprintf( stderr, "Rank %d: :( The group of failed processes is empty. At least %d failure should have been reported though\n", rank, kf );
+        fprintf( stderr, "Rank %02d: TEST FAILED! The group of failed processes is empty. At least %d failure should have been reported though\n", rank, kf );
         sleep(1);
         MPI_Abort( MPI_COMM_WORLD, -4 );
     }
     MPI_Group_size( gf, &gs );
     if( gs < 1 ) {
-        fprintf( stderr, "Rank %d: :( The group of failed processes is of size %d / %d.\n", rank, gs, kf );
+        fprintf( stderr, "Rank %02d: TEST PASSED  The group of failed processes is of size %d / %d.\n", rank, gs, kf );
         sleep(1);
         MPI_Abort( MPI_COMM_WORLD, -5 );
     }
-    printf( "Rank %d: :) The group of failed processes is of size %d / %d.\n", rank, gs, kf );
+    printf( "Rank %02d: TEST PASSED  The group of failed processes is of size %d / %d.\n", rank, gs, kf );
     MPI_Group_free( &gf );
 
     MPI_Finalize();

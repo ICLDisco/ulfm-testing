@@ -28,7 +28,7 @@ void recover(MPI_Comm *comm, int rank) {
     int nprocs, *errcodes, rc, old_size, new_size, errstrlen;
     char command[] = "./revshrinkkillrecover";
     MPI_Comm intercomm, tmp_comm, new_intra;
-    
+
 #if 0
     MPIX_Comm_shrink(*comm, &new_intra);
     *comm = new_intra;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017 The University of Tennessee and The University
+ * Copyright (c) 2012-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2012      Oak Ridge National Labs.  All rights reserved.
@@ -11,6 +11,12 @@
  * $HEADER$
  */
 
+/* This test checks that the SHRINK operation can create a new
+ * comm after a REVOKE.
+ *
+ * PASSED if rank 0 prints COMPLIANT for each repeat.
+ * FAILED if abort (or deadlock).
+ */
 #include <mpi.h>
 #include <mpi-ext.h>
 #include <stdlib.h>
@@ -20,7 +26,7 @@
 #define ADD_PENDING_REQS
 
 int main(int argc, char *argv[]) {
-    int rank, size, rc, verbose=0, r;
+    int rank, size, rc, ec, verbose=0, r;
 #ifdef ADD_PENDING_REQS
     int *sb, *rb;
     int count=1024*1024;
@@ -30,7 +36,7 @@ int main(int argc, char *argv[]) {
 
     MPI_Init(&argc, &argv);
 
-    if( !strcmp( argv[argc-1], "-v" ) ) verbose=1;
+    if( 0 == strcmp( argv[argc-1], "-v" ) ) verbose=1;
 
     MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 
@@ -60,13 +66,14 @@ for( r = 0; r < 100; r++) {
         rc = MPI_Barrier(world);
 
         /* If world was revoked, shrink world and try again */
-        if (MPIX_ERR_REVOKED == rc) {
-            printf("Rank %d - Barrier REVOKED\n", rank);
+        MPI_Error_class(rc, &ec);
+        if (MPIX_ERR_REVOKED == ec) {
+            if( verbose ) printf("Rank %d - Barrier REVOKED\n", rank);
 #ifdef ADD_PENDING_REQS
             rc = MPI_Wait(&sreq, MPI_STATUS_IGNORE);
-            printf("Rank %d - Send rc=%d\n", rank, rc);
+            if( verbose ) printf("Rank %d - Send rc=%d\n", rank, rc);
             rc = MPI_Wait(&rreq, MPI_STATUS_IGNORE);
-            printf("Rank %d - Recv rc=%d\n", rank, rc);
+            if( verbose ) printf("Rank %d - Recv rc=%d\n", rank, rc);
             free(sb); free(rb);
 #endif
             MPIX_Comm_shrink(world, &tmp);
@@ -75,14 +82,14 @@ for( r = 0; r < 100; r++) {
         }
         /* Otherwise check for a new process failure and recover
          * if necessary */
-        else if (MPIX_ERR_PROC_FAILED == rc) {
-            printf("Rank %d - Barrier FAILED\n", rank);
+        else if (MPIX_ERR_PROC_FAILED == ec) {
+            if( verbose ) printf("Rank %d - Barrier FAILED\n", rank);
             MPIX_Comm_revoke(world);
 #ifdef ADD_PENDING_REQS
             rc = MPI_Wait(&sreq, MPI_STATUS_IGNORE);
-            printf("Rank %d - Send rc=%d\n", rank, rc);
+            if( verbose ) printf("Rank %d - Send rc=%d\n", rank, rc);
             rc = MPI_Wait(&rreq, MPI_STATUS_IGNORE);
-            printf("Rank %d - Recv rc=%d\n", rank, rc);
+            if( verbose ) printf("Rank %d - Recv rc=%d\n", rank, rc);
             free(sb); free(rb);
 #endif
             MPIX_Comm_shrink(world, &tmp);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017 The University of Tennessee and The University
+ * Copyright (c) 2012-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2012      Oak Ridge National Labs.  All rights reserved.
@@ -11,6 +11,12 @@
  * $HEADER$
  */
 
+/* This test checks that the REVOKE operation can interrupt ongoing
+ * communication patterns on intra/inter/intra+fault scenarios.
+ *
+ * PASSED if rank 0 prints out at the end;
+ * FAILED if abort (or deadlock).
+ */
 #include <mpi.h>
 #include <mpi-ext.h>
 #include <stdlib.h>
@@ -22,7 +28,7 @@
 
 int main(int argc, char *argv[]) {
     char estr[MPI_MAX_ERROR_STRING]=""; int strl;
-    int rank, size, rc, i;
+    int rank, size, rc, ec, i;
 #ifdef ADD_PENDING_REQS
     int *sb, *rb;
     int count=1024*1024;
@@ -60,6 +66,11 @@ int main(int argc, char *argv[]) {
         rc = MPI_Barrier(world);
         MPI_Error_string(rc, estr, &strl);
         printf("Rank %3d - Barrier %s\n", rank, estr);
+        MPI_Error_class(rc, &ec);
+        if( MPI_SUCCESS == ec
+         || MPIX_ERR_REVOKED != ec ) {
+            MPI_Abort(MPI_COMM_WORLD, ec);
+        }
 #ifdef ADD_PENDING_REQS
         rc = MPI_Wait(&rreq, MPI_STATUS_IGNORE);
         MPI_Error_string(rc, estr, &strl);
@@ -87,6 +98,11 @@ int main(int argc, char *argv[]) {
         rc = MPI_Barrier(world);
         MPI_Error_string(rc, estr, &strl);
         printf("Rank %3d - Barrier %s\n", rank, estr);
+        MPI_Error_class(rc, &ec);
+        if( MPI_SUCCESS == rc
+         || MPIX_ERR_REVOKED != rc ) {
+            MPI_Abort(MPI_COMM_WORLD, rc);
+        }
     }
 
     rc = MPI_Barrier(MPI_COMM_WORLD);
@@ -110,11 +126,16 @@ int main(int argc, char *argv[]) {
         if( MPI_SUCCESS != rc && 0 == rank ) {
             MPIX_Comm_revoke(world);
         }
-        if( MPIX_ERR_PROC_FAILED == rc && 0 == (i++%10000) ) printf("Rank %3d - Barrier %d %s\n", rank, i, estr);
-    } while( MPIX_ERR_REVOKED != rc );
+        MPI_Error_class(rc, &ec);
+        if( MPIX_ERR_PROC_FAILED == ec && 0 == (i++%10000) ) printf("Rank %3d - Barrier %d %s\n", rank, i, estr);
+    } while( MPIX_ERR_REVOKED != ec );
     printf("Rank %3d - Barrier %s (after %d reported failed)\n", rank, estr, i);
 
     MPI_Comm_free(&world);
+
+    if( 0 == rank ) {
+        printf("\tTEST PASSED\n");
+    }
 
     MPI_Finalize();
 

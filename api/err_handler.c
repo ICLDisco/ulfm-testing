@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017 The University of Tennessee and The University
+ * Copyright (c) 2014-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
@@ -10,6 +10,18 @@
  * $HEADER$
  */
 
+/* basic test to check if we can survive a process failure during a collective
+ * operation. Nothing is done to recover, but we use the knowledge of where
+ * the failures will be injected to create a preexisting communicator in which
+ * there are no failures, which we verify still works after our failure has
+ * been reported.
+ *
+ * This test also uses REVOKE, error handlers, and periods without MPI progress
+ * cooldown to stress failure detection and in-band NIC reporting.
+ *
+ * PASSED if timings are printed out at the end;
+ * FAILED if abort (or deadlock).
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,8 +32,13 @@
 #include <mpi-ext.h>
 
 void revoke_handler( MPI_Comm* comm, int* err, ... ) {
-    if( MPIX_ERR_REVOKED != *err ) {
+    int ec;
+    MPI_Error_class(*err, &ec);
+    if( MPIX_ERR_PROC_FAILED == ec ) {
         MPIX_Comm_revoke( *comm );
+    }
+    else if( MPIX_ERR_REVOKED != ec ) {
+        MPI_Abort( *comm, *err );
     }
 }
 
@@ -51,6 +68,8 @@ int main( int argc, char* argv[] ) {
 
     MPI_Comm_create_errhandler( &revoke_handler, &rhandler );
     MPI_Comm_set_errhandler( fcomm, rhandler );
+    /* wait until everybody is ready to deal with the fault to inject */
+    MPI_Barrier( fcomm );
 
     if( victim ) {
         printf( "Rank %04d: committing suicide\n", rank );
@@ -66,7 +85,7 @@ int main( int argc, char* argv[] ) {
         MPI_Error_string( rc, estr, &strl );
         printf( "Rank %04d: Barrier1 completed (rc=%s) duration %g (s)\n", rank, estr, tf1 );
     }
-    st = ceil(3*fmax(1., tff));
+    st = ceil(3*fmax(15., tff));
 
     /* operation on scomm should not raise an error, only procs
      * not appearing in scomm are dead */
@@ -94,7 +113,8 @@ int main( int argc, char* argv[] ) {
         "## Timings ########### Min         ### Max         ##\n"
         "Barrier (no fault)  # %13.5e # %13.5e\n"
         "Barrier (new fault) # %13.5e # %13.5e\n"
-        "Barrier (old fault) # %13.5e # %13.5e\n",
+        "Barrier (old fault) # %13.5e # %13.5e\n"
+        "\tTEST PASSED\n",
         mtff, Mtff, mtf1, Mtf1, mtf2, Mtf2 );
 
     MPI_Comm_free( &fcomm );

@@ -1,6 +1,6 @@
 /* -*- C -*-
  *
- * Copyright (c)      2015 The University of Tennessee and The University
+ * Copyright (c) 2015-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -20,7 +20,8 @@
 
 /* verify if the interface is complete and provided.
  * As per MPI draft spec, these interface may not be
- * functional under the duress of failures.
+ * functional under the duress of failures. In which case
+ * attribute MPIX_FT is false or unset.
  */
 int main(void) {
     MPI_Comm shrink;
@@ -63,6 +64,7 @@ int main(void) {
     TEST_MACRO( MPIX_Comm_iagree, (MPI_COMM_WORLD, &flag, &req); MPI_Wait(&req, MPI_STATUS_IGNORE) );
     TEST_MACRO( MPIX_Comm_shrink, (MPI_COMM_WORLD, &shrink) );
     TEST_MACRO( MPIX_Comm_revoke, (MPI_COMM_WORLD) );
+    TEST_MACRO( MPIX_Comm_is_revoked, (MPI_COMM_WORLD, &flag) );
 
     MPI_Finalize();
     return 0;

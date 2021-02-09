@@ -1,5 +1,5 @@
 !
-! Copyright (c) 2015-2018 The University of Tennessee and The University
+! Copyright (c) 2015-2020 The University of Tennessee and The University
 !                         of Tennessee Research Foundation.  All rights
 !                         reserved.
 !
@@ -9,13 +9,16 @@
 !
 ! $HEADER$
 
+! Basic fortran test with a failure.
+! PASSED when program completes without aborting/deadlocking
+
       program main
 
-!      use mpi
-!      use mpi_ext
+      use mpi
+      use mpi_ext
       implicit none
-      include 'mpif.h'
-      include 'mpif-ext.h'
+!      include 'mpif.h'
+!      include 'mpif-ext.h'
       integer rank, size, ierr, strlen
       character str*(MPI_MAX_ERROR_STRING)
 

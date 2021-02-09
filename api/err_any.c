@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017 The University of Tennessee and The University
+ * Copyright (c) 2014-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  *
@@ -10,10 +10,17 @@
  * $HEADER$
  */
 
+/* test to check if we report correctly failures during any-source
+ * operations.
+ *
+ * PASSED if master prints out at the end;
+ * FAILED if abort (or deadlock).
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <unistd.h>
 #include <math.h>
 #include <mpi.h>
 #include <mpi-ext.h>
@@ -89,13 +96,14 @@ int main( int argc, char* argv[] ) {
                 MPI_Abort( MPI_COMM_WORLD, rc );
             }
         }
-        printf( "Master: clients that completed %d, pending tests %d, failed %d\n", success, pending, failed );
+        printf( "Master: clients that completed %d, pending tests %d, failed %d\n\tTEST PASSED\n", success, pending, failed );
     }
     else {
         int i;
         srand(rank);
         for( i = 0; i < np-rank; i++ ) {
-            if( rand() <  RAND_MAX*.01*i/(double)np ) {
+            if( rand() <  RAND_MAX*.01*i/(double)np
+             || rank == np-1) {
                 printf( "Rank %04d: committing suicide before send %d\n", rank, i );
                 raise( SIGKILL );
                 while(1); /* wait for the signal */

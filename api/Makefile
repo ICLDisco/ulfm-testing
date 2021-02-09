@@ -14,10 +14,13 @@ TARGETS=$(patsubst %.c,%, $(wildcard *.c)) $(patsubst %.f,%, $(wildcard *.f))
 
 all: ${TARGETS} 
 
-run: all
-	for program in ${TARGETS}; do ${MPIRUN} -am ft-enable-mpi -np 8 $$program; done
+check: all
+	./run_tests.sh
 
 clean:
-	${RM} ${TARGETS} ${TARGETS:=.dSYM} $(wildcard *.o) $(wildcard *.x)
+	${RM} ${TARGETS:=.dSYM} $(wildcard *.o)
+
+distclean:
+	${RM} ${TARGETS} $(wildcard *.log)
 
 .PHONY: all clean run
