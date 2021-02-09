@@ -18,3 +18,4 @@ This repository contains test to verify an ULFM Fault Tolerant MPI implementatio
 * bouteill@icl.utk.edu, bosilca@icl.utk.edu, herault@icl.utk.edu
 * Join the mailing list: ulfm@googlegroups.com
 * More information at http://fault-tolerance.org
+* Original url for this repository https://bitbucket.org/icldistcomp/ulfm-testing
