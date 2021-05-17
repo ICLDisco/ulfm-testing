@@ -18,10 +18,10 @@ NVCCFLAGS=-m 64 $(MPIINC) \
           --generate-code arch=compute_30,code=sm_30 \
 		  --generate-code arch=compute_35,code=sm_35 \
 		  --generate-code arch=compute_50,code=sm_50
-LDFLAGS= $(MPILIB) -g
+LDFLAGS= $(MPILIB) -g -lm
 
 #LINK="$LD $(NVCCFLAGS)"
-LINK=$(LD)
+LINK=$(LD) $(LDFLAGS)
 
 APPS=jacobi_noft jacobi_bckpt
 

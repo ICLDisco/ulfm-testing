@@ -292,7 +292,15 @@ int jacobi_cpu(TYPE* matrix, int NB, int MB, int P, int Q, MPI_Comm comm, TYPE e
     MPI_Comm_rank(world, &rank);
     MPI_Comm_size(world, &size);
     printf("Rank %d is joining the fun at iteration %d\n", rank, iteration);
-    
+#if 1
+    MPI_Info cinfo;
+    MPI_Comm_get_info(world, &cinfo);
+    MPI_Info_set(cinfo, "mpix_assert_error_scope", "global");
+    MPI_Info_set(cinfo, "mpix_assert_error_uniform", "coll");
+    MPI_Comm_set_info(world, cinfo);
+    MPI_Info_free(&cinfo);
+#endif
+
     om = matrix;
     nm = (TYPE*)calloc(sizeof(TYPE), (NB+2) * (MB+2));
     send_east = (TYPE*)malloc(sizeof(TYPE) * MB);
