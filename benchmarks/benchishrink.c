@@ -37,7 +37,7 @@ static inline double stat_get_mean(stat_t *s) {
 }
 
 static inline double stat_get_stdev(stat_t *s) {
-    if( s->n > 1 )
+   if( s->n > 1 )
         return sqrt(s->m2/(double)(s->n-1));
     return NAN;
 }
@@ -65,6 +65,28 @@ static inline void stat_init(stat_t *s, int keep_samples) {
     s->ks = keep_samples;
 }
 
+static int  verbose = 0;
+
+/* code extracted from 12.buddycr */
+static const int ckpt_tag = 42;
+static int buddycr(MPI_Comm comm, char *data, char *ckpt, int count, int i) {
+    int rank;
+    int np;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &np);
+#define lbuddy(r) ((r+np-1)%np)
+#define rbuddy(r) ((r+np+1)%np)
+    if(0 == rank || verbose) fprintf(stderr, "Rank %04d: checkpointing to %04d after iteration %d\n", rank, rbuddy(rank), i);
+
+    /* Store my checkpoint on my "right" neighbor */
+    return MPI_Sendrecv(data, count, MPI_CHAR, rbuddy(rank), ckpt_tag,
+                ckpt,   count, MPI_CHAR, lbuddy(rank), ckpt_tag,
+                comm, MPI_STATUS_IGNORE);
+}
+
+
+
+
 int main(int argc, char *argv[])
 {
     int rank, size;
@@ -76,12 +98,14 @@ int main(int argc, char *argv[])
     MPI_Request* reqs;
 
     int mf=0;
-    int  verbose = 0;
     int  keep = 0;
     int  before = 10;
     int  after  = 10;
     int  simultaneous = 1;
     int *faults;
+    int  ckptsize = 0;
+    char *data = NULL;
+    char *ckpt = NULL;
 
     double start, dfailure;
     stat_t sbefore, safter, sstab;
@@ -101,10 +125,11 @@ int main(int argc, char *argv[])
             { "faults",       1, 0, 'f' },
             { "keep",         1, 0, 'k' },
             { "multifaults",  1, 0, 'm' },
+            { "ckpt-size",    1, 0, 'c' },
             { NULL,           0, 0, 0   }
         };
 
-        c = getopt_long(argc, argv, "vs:b:k:a:f:m:", long_options, NULL);
+        c = getopt_long(argc, argv, "vs:b:k:a:f:m:c:", long_options, NULL);
         if (c == -1)
             break;
 
@@ -128,7 +153,10 @@ int main(int argc, char *argv[])
             faults[ atoi(optarg) ] = 1;
             break;
         case 'm':
-            mf=atoi(optarg);
+            mf = atoi(optarg);
+            break;
+        case 'c':
+            ckptsize = atoi(optarg);
             break;
         }
     }
@@ -140,6 +168,14 @@ int main(int argc, char *argv[])
     comms = malloc(sizeof(MPI_Comm)*(before+after+2)*simultaneous);
     reqs = malloc(sizeof(MPI_Request)*simultaneous);
     worlds = malloc(sizeof(MPI_Comm)*simultaneous);
+
+    if(0 < ckptsize) {
+        data = malloc(sizeof(char)*ckptsize);
+        ckpt = malloc(sizeof(char)*ckptsize);
+        for(i = 0; i < ckptsize; i++) {
+            data[i] = (char)rank+i;
+        }
+    }
 
     for(i = 0; i < mf; i++) {
         do {
@@ -165,6 +201,7 @@ int main(int argc, char *argv[])
         for(s = 0; s < simultaneous; s++) {
             ret = MPIX_Comm_ishrink(worlds[s], &comms[i+simultaneous*s], &reqs[s]);
         }
+        if(0 < ckptsize) buddycr(worlds[s], data, ckpt, ckptsize, i);
         MPI_Waitall(simultaneous, reqs, MPI_STATUSES_IGNORE);
         stat_record(&sbefore, MPI_Wtime() - start);
         if( ret != MPI_SUCCESS ) {
@@ -192,6 +229,7 @@ int main(int argc, char *argv[])
     for(s = 0; s < simultaneous; s++) {
        ret = MPIX_Comm_ishrink(worlds[s], &comms[before+simultaneous*s], &reqs[s]);
     }
+    if(0 < ckptsize) buddycr(worlds[s], data, ckpt, ckptsize, i);
     MPI_Waitall(simultaneous, reqs, MPI_STATUSES_IGNORE);
     dfailure = MPI_Wtime() - start;
     if( ret != MPI_SUCCESS ) {
@@ -206,6 +244,7 @@ int main(int argc, char *argv[])
     for(s = 0; s < simultaneous; s++) {
        ret = MPIX_Comm_ishrink(worlds[s], &comms[before+1+simultaneous*s], &reqs[s]);
     }
+    if(0 < ckptsize) buddycr(worlds[s], data, ckpt, ckptsize, i);
     MPI_Waitall(simultaneous, reqs, MPI_STATUSES_IGNORE);
     stat_record(&sstab, MPI_Wtime()-start);
     if( ret != MPI_SUCCESS ) {
@@ -224,6 +263,7 @@ int main(int argc, char *argv[])
         for(s = 0; s < simultaneous; s++) {
             ret = MPIX_Comm_ishrink(worlds[s], &comms[i+before+2+simultaneous*s], &reqs[s]);
         }
+        if(0 < ckptsize) buddycr(worlds[s], data, ckpt, ckptsize, i);
         MPI_Waitall(simultaneous, reqs, MPI_STATUSES_IGNORE);
         stat_record(&safter, MPI_Wtime() - start);
         if( ret != MPI_SUCCESS ) {
