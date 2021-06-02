@@ -46,6 +46,7 @@ int main(int argc, char* argv[])
 
     MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
     MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &nprocs));
+    set_info_ft(MPI_COMM_WORLD, options.ft_report, options.ft_uniform);
 
     pairs = nprocs/2;
 

@@ -26,6 +26,8 @@ do {                                                             \
 extern MPI_Aint disp_remote;
 extern MPI_Aint disp_local;
 
+void set_info_ft(MPI_Comm comm, ft_mode_t report_mode, ft_mode_t uniform_mode);
+
 /*
  * Non-blocking Collectives
  */

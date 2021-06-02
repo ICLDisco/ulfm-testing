@@ -227,6 +227,18 @@ enum test_synctype {
     ACTIVE_SYNC
 };
 
+/*
+ * Faults
+ */
+typedef enum ft_mode_e {
+    FT_REPORT_LOCAL,
+    FT_REPORT_GROUP,
+    FT_REPORT_GLOBAL,
+    FT_UNIFORM_LOCAL,
+    FT_UNIFORM_CREATE,
+    FT_UNIFORM_COLL
+} ft_mode_t;
+
 enum WINDOW {
     WIN_CREATE=0,
 #if MPI_VERSION >= 3
@@ -275,6 +287,9 @@ struct options_t {
     enum benchmark_type bench;
     enum test_subtype  subtype;
     enum test_synctype synctype;
+
+    enum ft_mode_e ft_report;
+    enum ft_mode_e ft_uniform;
 
     char src;
     char dst;

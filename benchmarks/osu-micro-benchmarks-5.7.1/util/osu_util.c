@@ -412,6 +412,8 @@ int process_options (int argc, char *argv[])
             {"num-pairs",       required_argument,  0,  'p'},
             {"vary-window",     required_argument,  0,  'V'},
             {"buffer-num",      required_argument,  0,  'b'},
+            {"ft_report",       required_argument,  0,  'E'},
+            {"ft_uniform",      required_argument,  0,  'U'},
     };
 
     enable_accel_support();
@@ -425,23 +427,23 @@ int process_options (int argc, char *argv[])
             }
         } else{
             if (options.subtype == LAT_MT) {
-                optstring = "+:hvm:x:i:t:";
+                optstring = "+:hvm:x:i:t:E:U:";
             } else if (options.subtype == LAT_MP) {
-                optstring = "+:hvm:x:i:t:";
+                optstring = "+:hvm:x:i:t:E:U:";
             } else if (options.subtype == BW) {
-                optstring = "+:hvm:x:i:t:W:b:";
+                optstring = "+:hvm:x:i:t:W:b:E:U:";
             } else {
-                optstring = "+:hvm:x:i:b:";
+                optstring = "+:hvm:x:i:b:E:U:";
             }
         }
     } else if (options.bench == COLLECTIVE) {
         if (options.subtype == LAT) { /* Blocking */
-            optstring = "+:hvfm:i:x:M:a:";
+            optstring = "+:hvfm:i:x:M:a:E:U:";
             if (accel_enabled) {
                 optstring = (CUDA_KERNEL_ENABLED) ? "+:d:hvfm:i:x:M:r:a:" : "+:d:hvfm:i:x:M:a:";
             }
         } else { /* Non-Blocking */
-            optstring = "+:hvfm:i:x:M:t:a:";
+            optstring = "+:hvfm:i:x:M:t:a:E:U:";
             if (accel_enabled) {
                 optstring = (CUDA_KERNEL_ENABLED) ? "+:d:hvfm:i:x:M:t:r:a:" : "+:d:hvfm:i:x:M:t:a:";
             }
@@ -731,6 +733,28 @@ int process_options (int argc, char *argv[])
                     return PO_BAD_USAGE;
                 }
                 break;
+            case 'E':
+                if (0 == strcasecmp(optarg, "local")) {
+                    options.ft_report = FT_REPORT_LOCAL;
+                } else if (0 == strcasecmp(optarg, "group")) {
+                    options.ft_report = FT_REPORT_GROUP;
+                } else if (0 == strcasecmp(optarg, "global")) {
+                    options.ft_report = FT_REPORT_GLOBAL;
+                } else {
+                    return PO_BAD_USAGE;
+                }
+                break;
+            case 'U':
+                if (0 == strcasecmp(optarg, "local")) {
+                    options.ft_uniform = FT_UNIFORM_LOCAL;
+                } else if (0 == strcasecmp(optarg, "create")) {
+                    options.ft_uniform = FT_UNIFORM_CREATE;
+                } else if (0 == strcasecmp(optarg, "coll")) {
+                    options.ft_uniform = FT_UNIFORM_COLL;
+                } else {
+                    return PO_BAD_USAGE;
+                }
+                break;
             case ':':
                 bad_usage.message = "Option Missing Required Argument";
                 bad_usage.opt = optopt;
@@ -828,7 +852,6 @@ int setAccel(char buf_type)
     }
     return PO_OKAY;
 }
-
 
 double getMicrosecondTimeStamp()
 {

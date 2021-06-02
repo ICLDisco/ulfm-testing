@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
     MPI_CHECK(MPI_Init(&argc, &argv));
     MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
     MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &numprocs));
+    set_info_ft(MPI_COMM_WORLD, options.ft_report, options.ft_uniform);
     MPI_Request request;
     MPI_Status status;
 

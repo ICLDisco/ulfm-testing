@@ -32,7 +32,6 @@ main (int argc, char *argv[])
 
     set_header(HEADER);
     set_benchmark_name("osu_latency");
-
     po_ret = process_options(argc, argv);
 
     if (PO_OKAY == po_ret && NONE != options.accel) {
@@ -45,6 +44,7 @@ main (int argc, char *argv[])
     MPI_CHECK(MPI_Init(&argc, &argv));
     MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &numprocs));
     MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &myid));
+    set_info_ft(MPI_COMM_WORLD, options.ft_report, options.ft_uniform);
 
     if (0 == myid) {
         switch (po_ret) {

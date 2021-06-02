@@ -131,6 +131,38 @@ void *align_buffer (void * ptr, unsigned long align_size)
 }
 
 
+void set_info_ft(MPI_Comm comm, ft_mode_t report_mode, ft_mode_t uniform_mode) {
+    MPI_Info cinfo;
+    MPI_Comm_get_info(comm, &cinfo);
+
+    switch(report_mode) {
+    case FT_REPORT_GLOBAL:
+        MPI_Info_set(cinfo, "mpix_assert_error_scope", "global");
+        break;
+    case FT_REPORT_GROUP:
+        MPI_Info_set(cinfo, "mpix_assert_error_scope", "group");
+        break;
+    case FT_REPORT_LOCAL: /* fallthrough */
+    default:
+        MPI_Info_set(cinfo, "mpix_assert_error_scope", "local");
+        break;
+    }
+    switch(uniform_mode) {
+        case FT_UNIFORM_COLL:
+            MPI_Info_set(cinfo, "mpix_assert_error_uniform", "coll");
+            break;
+        case FT_UNIFORM_CREATE:
+            MPI_Info_set(cinfo, "mpix_assert_error_uniform", "create");
+            break;
+        case FT_UNIFORM_LOCAL:
+        default:
+            MPI_Info_set(cinfo, "mpix_assert_error_uniform", "local");
+            break;
+    }
+    MPI_Comm_set_info(comm, cinfo);
+    MPI_Info_free(&cinfo);
+}
+
 void usage_one_sided (char const * name)
 {
     if (accel_enabled) {
