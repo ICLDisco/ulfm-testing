@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
 /*
- * Copyright (c) 2013-2019 The University of Tennessee and The University
+ * Copyright (c) 2013-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -53,7 +53,10 @@ int main(int argc, char *argv[]) {
     int err_array[NSPAWNEES] = { MPI_SUCCESS };
 
     if(0 == rank) printf("Parents enters MPI_COMM_SPAWN with %s\n", arg_array[0]);
-    flag = MPI_Comm_spawn(command, arg_array, NSPAWNEES, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &icomm, err_array);
+    MPI_Info info_spawn;
+    MPI_Info_create(&info_spawn);
+    MPI_Info_set(info_spawn, "pmix.mapby", ":display");
+    flag = MPI_Comm_spawn(command, arg_array, NSPAWNEES, info_spawn, 0, MPI_COMM_WORLD, &icomm, err_array);
     if( MPI_SUCCESS != flag ) {
         printf("Spawn errcode arrays says | ");
         for(int i = 0; i < NSPAWNEES; i++) {
@@ -70,6 +73,7 @@ int main(int argc, char *argv[]) {
         MPI_Comm_disconnect(&icomm);
     }
     MPI_Barrier(MPI_COMM_WORLD);
+    if(0 == rank) printf("Parents completed MPI_COMM_SPAWN with %s\n", arg_array[0]);
 
 
 #if 0
@@ -102,6 +106,7 @@ int main(int argc, char *argv[]) {
     }
     /* Now use agree because Barrier is 'broken' by the fault */
     MPIX_Comm_agree(MPI_COMM_WORLD, &flag);
+    if(0 == rank) printf("Parents completed MPI_COMM_SPAWN with %s\n", arg_array[0]);
 
     sleep(1);
 
@@ -151,6 +156,7 @@ int main(int argc, char *argv[]) {
     }
     /* Now use agree because Barrier is 'broken' by the fault */
     MPIX_Comm_agree(MPI_COMM_WORLD, &flag);
+    if(0 == rank) printf("Parents completed MPI_COMM_SPAWN with %s\n", arg_array[0]);
 
 
 
