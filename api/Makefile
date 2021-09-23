@@ -18,9 +18,9 @@ check: all
 	./run_tests.sh
 
 clean:
-	${RM} ${TARGETS:=.dSYM} $(wildcard *.o)
+	${RM} ${TARGETS} ${TARGETS:=.dSYM} $(wildcard *.o)
 
-distclean:
-	${RM} ${TARGETS} $(wildcard *.log)
+distclean: clean
+	${RM} $(wildcard *.log)
 
 .PHONY: all clean run
