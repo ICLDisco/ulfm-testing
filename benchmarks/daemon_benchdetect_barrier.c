@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 The University of Tennessee and The University
+ * Copyright (c) 2013-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -14,6 +14,7 @@
 #include <signal.h>
 #include <math.h>
 #include <mpi.h>
+#include <mpi-ext.h>
 #include <assert.h>
 #include <string.h>
 #include <sys/types.h>

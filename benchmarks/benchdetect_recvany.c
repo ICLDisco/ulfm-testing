@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
 /*
- * Copyright (c) 2013-2017 The University of Tennessee and The University
+ * Copyright (c) 2013-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -18,6 +18,7 @@
 #include <signal.h>
 #include <math.h>
 #include <mpi.h>
+#include <mpi-ext.h>
 
 void print_timings( MPI_Comm scomm, double tff, double twf );
 int rank, verbose=0; /* makes this global (for printfs) */
@@ -116,7 +117,7 @@ do {
     /* Victim suicides */
     if( victim ) {
         printf( "Rank %04d: committing suicide at date %.9f\n", rank, MPI_Wtime() );
-        OMPI_Comm_failure_inject(fcomm, notify);
+        raise(SIGKILL);
     }
 
     /* Do a recv from any_source : it will raise an exception: somebody is dead */
