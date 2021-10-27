@@ -1,5 +1,5 @@
 C
-C  Copyright (c) 2013-2017 The University of Tennessee and The University
+C  Copyright (c) 2013-2014 The University of Tennessee and The University
 C                          of Tennessee Research Foundation.  All rights
 C                          reserved.
 C  $COPYRIGHT$
@@ -31,10 +31,10 @@ C sizes
 	parameter ( SLICES = MAXSIZE * 5)
 
 C worker state 
-	integer  AVAILABLE, WORKING, SEND_FAILED,  RECEIVED
-	integer  RECV_FAILED,  FINISHED,  DEAD,   INVALID
+	integer  AVAILABLE, WORKING, RECEIVED
+	integer  FINISHED,  DEAD,   INVALID
 	parameter( AVAILABLE = 0, WORKING = 1 )
-	parameter( SEND_FAILED = 2,  RECEIVED = 3, RECV_FAILED = 4)
+	parameter(   RECEIVED = 3 )
 	parameter (  FINISHED = 5,  DEAD = 6,  INVALID = 7 )
 
 C events

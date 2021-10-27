@@ -1,7 +1,13 @@
 Welcome to the labwork for the MPI Fault Tolerant hands-on.
 ===========================================================
 
-This package and information about it is available from [fault-tolerance.org/sc17](http://fault-tolerance.org/sc17).
+This archive contains a set of example to be used to understand how
+the ULFM resilient constructs can be used. The most up-to-date version
+can be found either on http://fault-tolerance.org or in the GitHub
+repository at https://github.com/ICLDisco/ulfm-testing.
+
+More information on this package and how to use it is available from
+[fault-tolerance.org/sc21](http://fault-tolerance.org/sc21).
 
 This hands-on demonstrates how to use User Level Failure Mitigation
 (ULFM) MPI to design typical application fault-tolerance patterns.
@@ -17,7 +23,7 @@ This package contains
 
 1. The tutorial hands-on examples.
 2. Scripts to obtain and setup your shell for executing the examples in the
-   pre-compiled Docker version of ULFM Open MPI 2.1a1.
+   pre-compiled Docker version of ULFM Open MPI v5.0.0rc2.
 
 Using the Docker Image
 ----------------------
@@ -72,10 +78,27 @@ We recommend you use the Docker Image on your local laptop for the tutorial.
 However, for performance and scalability testing on real high performance
 systems, we strongly advice against using the Docker Image. Instead, you
 may compile your own version of
-[ULFM MPI](https://bitbucket.org/icldistcomp/ulfm2) with support for your
+[ULFM MPI](https://github.org/open-mpi/ompi) with support for your
 prefered NIC and batch scheduler. Please refer to the complete instructions
-on how to install the ULFM Open MPI version 2.0rc directly from its own
-README.
+on how to use ULFM, which is including in Open MPI version 5.0 onward, directly from its own
+[README-ULFM](https://github.com/open-mpi/ompi/blob/master/README.FT.ULFM.md).
 
 Expect the compilation to last between 15 to 20 minutes depending on your
 setup.
+
+
+----------------------------------------------------------------------------
+
+When submitting questions and problems, be sure to include as much
+extra information as possible. The best way to report bugs, send
+comments, or ask questions is to sign up on the user's mailing list
+ulfm@googlegroups.com.
+
+
+----------------------------------------------------------------------------
+
+Copyright (c) 2009-2021 The University of Tennessee and The University
+                        of Tennessee Research Foundation.  All rights
+                        reserved.
+
+----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 C
-C  Copyright (c) 2013-2018 The University of Tennessee and The University
+C  Copyright (c) 2013-2017 The University of Tennessee and The University
 C                          of Tennessee Research Foundation.  All rights
 C                          reserved.
 C  $COPYRIGHT$
@@ -33,9 +33,6 @@ C     work distribution
 C     recovery
       integer isfinished
 
-      integer error_handler
-      external error_handler
-
 C     startup
       isfinished  = 0
       slicestodo  = (1+maxworkers)*slices/MAXSIZE
@@ -52,8 +49,8 @@ C     The loop contains of two parts: distribute work, and
 C     collect the results. In case a worker dies, his work is
 C     marked as 'not done' and redistributed.
       lib_comm = communicator
-      call MPI_Comm_create_errhandler(error_handler, errh, rc)
-      call MPI_Comm_set_errhandler(lib_comm, errh, rc)
+
+C     NEED TO PREVENT ABORT ON ERROR
 
  20   continue
 
@@ -193,10 +190,6 @@ C     mark work as finished */
          state(r)       = AVAILABLE
          currentwork(r) = slices ! i.e. empty tag
          write (*,*) "DONE WORK: [", r, "] work [", tmp, "]"
-      else if  ( state(r). eq. SEND_FAILED ) then
-         state(r) = AVAILABLE
-      else if ( state(r) .eq. RECV_FAILED) then
-         state(r) = WORKING
       else if  (state(r) .eq. DEAD) then
 C     State of process not updated, since done or dead
       else if  (state(r) .eq. FINISHED) then
@@ -204,24 +197,6 @@ C     do nothing anymore
       else
          write (*,*) "Invalid state of proc ", r
          call MPI_Abort ( lib_comm, 1, rc )
-      end if
-
-      end
-C**********************************************************************
-C**********************************************************************
-C**********************************************************************
-      subroutine mark_error ( r )
-
-      implicit none
-      include "mpif.h"
-      include "fsolvergen.inc"
-
-      integer r
-
-      if ( state(r) .eq. AVAILABLE )  then
-         state(r) = SEND_FAILED
-      else if ( state(r) .eq. WORKING ) then
-         state(r) = RECV_FAILED
       end if
 
       end
