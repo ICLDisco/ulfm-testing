@@ -57,6 +57,10 @@ c     And mark them dead
             rc = 0
 c     Render the communicator useless
             call MPIX_Comm_revoke(communicator, rc)
+         else
+            write(*,*)"Looks like the master has failed;",
+     $          "calling abort at ", myrank
+            call MPI_abort(MPI_COMM_SELF, 2)
          endif
 c     And create a new one
          call MPIX_Comm_shrink(communicator, new_comm, rc)
@@ -67,12 +71,12 @@ c     Tell the storage, to map from old to new communicator:
 c     Gather: old process ranks at location new process
          call MPI_Gather(oldrank, 1, MPI_INTEGER4, mapsto,
      $        1, MPI_INTEGER4, 0, communicator, rc)
-         do rc = 1, maxworkers
-            write(*,*)mapsto(rc),"MAPSTO",rc-1
-            state(rc-1)       = state(mapsto(rc))
-            currentwork(rc-1) = currentwork(mapsto(rc))
-         enddo
          maxworkers = maxworkers-1
+         do rc = 1, maxworkers
+            write(*,*)mapsto(rc+1),"MAPSTO RANK",rc
+            state(rc)       = state(mapsto(rc+1))
+            currentwork(rc) = currentwork(mapsto(rc+1))
+         enddo
 c     Create new Communicators:
       elseif (error_code.eq.MPI_ERR_REVOKED) then
          call MPIX_Comm_shrink(communicator, new_comm,rc)

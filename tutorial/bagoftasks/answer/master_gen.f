@@ -193,7 +193,7 @@ C     mark work as finished */
          state(r)       = AVAILABLE
          currentwork(r) = slices ! i.e. empty tag
          write (*,*) "DONE WORK: [", r, "] work [", tmp, "]"
-      else if  ( state(r). eq. SEND_FAILED ) then
+      else if  ( state(r) .eq. SEND_FAILED ) then
          state(r) = AVAILABLE
       else if ( state(r) .eq. RECV_FAILED) then
          state(r) = WORKING
