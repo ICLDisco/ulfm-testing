@@ -8,13 +8,14 @@ Switch -Regex ($args[0]) {
         docker pull abouteiller/mpi-ft-ulfm
         function make { docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm make $args }
         function ompi_info { docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm ompi_info $args }
-        function mpirun { docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm mpirun --oversubscribe -mca btl tcp,self $args }
-        function mpiexec { docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm mpiexec --oversubscribe -mca btl tcp,self $args }
+        function mpirun { docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm mpirun --map-by :oversubscribe --mca btl tcp,self $args }
+        function mpiexec { docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm mpiexec --map-by :oversubscribe --mca btl tcp,self $args }
         function mpicc { docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm mpicc $args }
         function mpif90 { docker run -v ${PWD}:/sandbox:Z abouteiller/mpi-ft-ulfm mpif90 $args }
         echo "#  alias functions set for 'make', 'mpirun', 'mpiexec', 'mpicc', 'mpif90'."
         echo (". " + $MyInvocation.MyCommand.Name + " unload; remove these alias functions.")
         echo "#    These commands now run from the ULFM Docker image."
+        echo "#    Use 'mpiexec --with-ft ulfm' to turn ON fault tolerance."
         mpirun --version
     }
     "^unload$" {
