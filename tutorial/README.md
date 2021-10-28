@@ -52,21 +52,26 @@ execute from the Docker machine on the local directory.
   (i.e., it issues `docker pull abouteiller/mpi-ft-ulfm`.)
 4. In the tutorial examples directory. You can now type `make` to
 compile the examples using the Docker provided "mpicc", and you can execute
-the generated examples in the Docker machine using `mpirun -np 10 example`
+the generated examples in the Docker machine using `mpirun -np 10 --with-ft ulfm example`
 (In Windows, do **not** use `.\example`.)
 
 
-__A note about Docker with SELinux__ The `dockervars.sh` script remapping
-uses Docker volumes to expose the source code of the tutorial examples to the
-`mpicc` compiler inside the docker machine. In SELinux enabled machines,
-exposing a host directory to the docker machine requires that this directory
-is properly labeled; [More information](https://www.projectatomic.io/blog/2015/06/using-volumes-with-docker-can-cause-problems-with-selinux/).
-The remapping script employs the automatic relabeling flag `:V` to ensure
-proper labelling of the exposed directories. If you want to finely control
-which directories are labeled for docker usage, as an alternative, you may
-suppress the `:V` flag from the script and explicitly label the examples
-directory with `chcon`.
-
+__A note about Docker volume binding with SELinux__
+The `dockervars.sh` script remapping uses Docker volumes to expose the source
+code of the tutorial examples to the `mpicc` compiler inside the docker machine.
+In SELinux enabled machines, exposing a host directory to the docker machine 
+requires that this directory is properly labeled; [More information](https://www.projectatomic.io/blog/2015/06/using-volumes-with-docker-can-cause-problems-with-selinux/).
+For simplicity, the remapping script drops the security label option within
+the container; it will however still change user to match the current host 
+user and drop other unecessary capabilities. If you want to still use SELinux
+labeling, you should finely control which directories are labeled for docker usage
+and explicitly label the examples directory with `chcon`; this is outside the
+scope of this tutorial. Another, simpler, but more dangerous option is using
+the automatic relabeling flag `:V`. While it can ensure proper labelling of the
+exposed directories, when used improperly it may relabel unexpected directories
+on the host: it is safe as long as you do not `cd` outside the example code
+arborescence, but may relabel unexpected directories on the host when used 
+in system directories, or at the root of a user's home; use at your own risk.
 
 ----------------------------------------------------------------------------
 
