@@ -10,12 +10,63 @@
  * $HEADER$
  */
 
+/* This test validates that no PROC_FAILED error are produced during
+ * isend/irecv, they must be reported during the MPI_Wait*, later
+ */
+
 #include <mpi.h>
 #include <mpi-ext.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    MPI_Errhandler errh;
+    int rc = MPI_SUCCESS;
+    int verbose;
+
+    MPI_Init(NULL, NULL);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    verbose = (0 == rank);
+
+    MPI_Comm_create_errhandler(verbose_errhandler,
+                               &errh);
+    MPI_Comm_set_errhandler(MPI_COMM_WORLD,
+                            errh);
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    if( rank == (size-1)
+     || rank == (size/2) ) {
+        printf("Rank %d / %d: bye bye!\n", rank, size);
+        raise(SIGKILL);
+    }
+
+    sleep(1);
+    MPI_Barrier(MPI_COMM_WORLD);
+    sleep(1);
+    
+    if( rank == 0 ) {
+        MPI_Request reqs[2];
+        MPI_Status statuses[2];
+        printf("%04d: initiating isend to failed processes -after- they have been reported dead. Error should be reported during MPI_Waitall, not during isend.\n");
+        rc = MPI_Isend( &rank, 1, MPI_INT, size-1, 1, MPI_COMM_WORLD, &reqs[0]);
+        if( MPI_SUCCESS != rc ) MPI_Abort(MPI_COMM_WORLD, rc);
+        rc = MPI_Isend( &rank, 1, MPI_INT, size/2, 1, MPI_COMM_WORLD, &reqs[1]);
+        if( MPI_SUCCESS != rc ) MPI_Abort(MPI_COMM_WORLD, rc);
+        MPI_Waitall(2, reqs, statuses);
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    if( verbose ) printf("%04d: TEST PASSED\n");
+
+    MPI_Finalize();
+}
+
 
 static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     MPI_Comm comm = *pcomm;
@@ -59,43 +110,3 @@ static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     free(ranks_gf); free(ranks_gc);
 }
 
-int main(int argc, char *argv[]) {
-    int rank, size;
-    MPI_Errhandler errh;
-    int rc = MPI_SUCCESS;
-
-    MPI_Init(NULL, NULL);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    MPI_Comm_create_errhandler(verbose_errhandler,
-                               &errh);
-    MPI_Comm_set_errhandler(MPI_COMM_WORLD,
-                            errh);
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    if( rank == (size-1)
-     || rank == (size/2) ) {
-        printf("Rank %d / %d: bye bye!\n", rank, size);
-        raise(SIGKILL);
-    }
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    sleep(1);
-
-    if( rank == 0 ) {
-        MPI_Request reqs[2];
-        MPI_Status statuses[2];
-        printf("%04d: initiating isend to failed processes -after- they have been reported dead. Error should be reported during MPI_Waitall, not during isend.\n");
-        rc = MPI_Isend( &rank, 1, MPI_INT, size-1, 1, MPI_COMM_WORLD, &reqs[0]);
-        if( MPI_SUCCESS != rc ) MPI_Abort(MPI_COMM_WORLD, rc);
-        rc = MPI_Isend( &rank, 1, MPI_INT, size/2, 1, MPI_COMM_WORLD, &reqs[1]);
-        if( MPI_SUCCESS != rc ) MPI_Abort(MPI_COMM_WORLD, rc);
-        MPI_Waitall(2, reqs, statuses);
-    }
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    MPI_Finalize();
-}

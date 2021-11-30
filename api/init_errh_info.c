@@ -14,6 +14,12 @@
 #include <stdio.h>
 #include <mpi.h>
 
+/*
+ * Test the 'initial error handler' capability by probing the info key
+ *
+ * result depends on command line parameters, see run_tests.sh for details
+ * about PASSED/FAILED status
+ */
 int main(int argc, char** argv) {
     char value[MPI_MAX_INFO_KEY] = "unread";
     int flag=0;

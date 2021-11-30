@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
          * killing 1/4 of senders at iteration 15 */
         if( i == 10 && rank%8 == 1
          || i == 15 && rank%8 == 2) {
+            printf("Rank %02d SIGKILL at iteration %d\n", rank, i);
             raise(SIGKILL);
         }
 
@@ -78,6 +79,17 @@ int main(int argc, char* argv[]) {
     MPI_Isend(&i, 1, MPI_INT, dst, 1, MPI_COMM_WORLD, &reqs[0]);
     MPI_Irecv(&msg, 1, MPI_INT, src, 1, MPI_COMM_WORLD, &reqs[1]);
     rc = MPI_Waitall(2, reqs, statuses);
+
+    /* Shrink to validate how many procs are still around */
+    printf("Rank %02d completed the pingpairs test, will now count how many of us are left\n", rank);
+    MPI_Comm scomm; int srank, ssize;
+    MPIX_Comm_shrink(MPI_COMM_WORLD, &scomm);
+    MPI_Comm_rank(scomm, &srank);
+    MPI_Comm_size(scomm, &ssize);
+    if(0 == srank) {
+        int failed = 2*(size/8) + (((size%8)>1)? 1: 0) + (((size%8)>2)? 1: 0);
+        printf("\n\nTEST COMPLETED: %d of %d procs are still around: %s\n\n", ssize, size, (ssize+failed == size)? "SUCCESS": "FAILURE");
+    }
 
     MPI_Finalize();
     return EXIT_SUCCESS;
@@ -103,7 +115,7 @@ static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     MPIX_Comm_failure_get_acked(comm, &group_f);
     MPI_Group_size(group_f, &nf);
     MPI_Error_string(err, errstr, &len);
-    printf("Rank %d / %d: Notified of error %s. %d found dead: { ",
+    printf("Rank %02d / %d: Notified of error %s. %d found dead: { ",
            rank, size, errstr, nf);
 
     ranks_gf = (int*)malloc(nf * sizeof(int));
@@ -114,6 +126,6 @@ static void verbose_errhandler(MPI_Comm* pcomm, int* perr, ...) {
     MPI_Group_translate_ranks(group_f, nf, ranks_gf,
                               group_c, ranks_gc);
     for(i = 0; i < nf; i++)
-        printf("%d ", ranks_gc[i]);
+        printf("%02d ", ranks_gc[i]);
     printf("}\n");
 }

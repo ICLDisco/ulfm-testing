@@ -10,6 +10,15 @@
  * $HEADER$
  */
 
+/* Fully fledge application example will recover from a failure by replacing
+ * the process, reorganizing the communicator to be in same-order/ranks as
+ * before, reload a checkpoint of the dataset from a buddy, and then resume
+ * computation.
+ *
+ * PASSED: Bcast 5 is performed and according output
+ * FAILED: Test crash or deadlock and Bcast 5 is performed.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>

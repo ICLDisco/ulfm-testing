@@ -1,14 +1,26 @@
 /*
- * Copyright (c) 2012-2015 The University of Tennessee and The University
+ * Copyright (c) 2012-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2012      Oak Ridge National Labs.  All rights reserved.
  *
  * $COPYRIGHT$
- * 
+ *
  * Additional copyrights may follow
- * 
+ *
  * $HEADER$
+ */
+
+/* This test randomly picks a process to kill, and then replaces it with
+ * a new spawnee. Left on its own, this test keeps going forever until
+ * interupted on the command line.
+ *
+ * PASSED: test keeps going
+ * FAILED: test crash/stop/deadlock or unexpected failures are seen.
+ *         Note that by the nature of the test, unexpected failures
+ *         may be recovered, which can make them hard to see with this
+ *         test. Separate test `revshrinkkill` can be used to count
+ *         outputs and validate this case beforehand.
  */
 
 #include <mpi.h>
@@ -52,7 +64,7 @@ void recover(MPI_Comm *comm, int rank) {
     }
 
     //printf("%d : %d - %d\n", rank, old_size, new_size);
-    
+
     /* Spawn the new processes */
     rc = MPI_Comm_spawn(command, MPI_ARGV_NULL, nprocs, MPI_INFO_NULL, 0, tmp_comm, &intercomm, errcodes);
     if (MPI_SUCCESS != rc) {
@@ -93,13 +105,13 @@ int main(int argc, char *argv[]) {
     pid = getpid();
 
     MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
-    
+
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     srand((unsigned int) time(NULL) + (rank*1000));
-    
+
     MPI_Comm_get_parent(&parentcomm);
-    
+
     /* See if we were spawned and if so, recover */
     if (MPI_COMM_NULL != parentcomm) {
         printf("Spawned\n");
@@ -108,7 +120,7 @@ int main(int argc, char *argv[]) {
         print = 1;
         spawned = strdup("spawned");
     } else {
-        /* Dup MPI_COMM_WORLD so we can continue to use the 
+        /* Dup MPI_COMM_WORLD so we can continue to use the
          * world handle if there is a failure */
         MPI_Comm_dup(MPI_COMM_WORLD, &world);
         spawned = strdup("original");
@@ -120,12 +132,12 @@ int main(int argc, char *argv[]) {
     /* Do a loop that keeps killing processes until there are none left */
     while(1) {
         rnum = rand();
-        
+
         if (rank != 0) {
             /* If you're within the window, just kill yourself */
-            if ((RAND_MAX / 2) + FAIL_WINDOW > rnum 
+            if ((RAND_MAX / 2) + FAIL_WINDOW > rnum
                     && (RAND_MAX / 2) - FAIL_WINDOW < rnum ) {
-                printf("%d - Killing Self (%d successful barriers, %d revokes, %d fails, %d communicator size)\n", 
+                printf("%d - Killing Self (%d successful barriers, %d revokes, %d fails, %d communicator size)\n",
                                                 rank, successes, revokes, fails, size);
                 fflush(stdout);
                 kill(pid, 9);
@@ -156,7 +168,7 @@ int main(int argc, char *argv[]) {
             revokes++;
             recover(&world, rank);
             print = 1;
-        } 
+        }
         /* Otherwise check for a new process failure and recover
          * if necessary */
         else if (MPIX_ERR_PROC_FAILED == rc) {
@@ -174,7 +186,7 @@ int main(int argc, char *argv[]) {
         MPI_Comm_rank(world, &rank);
     }
 
-    printf("%d - Finalizing (%d successful barriers, %d revokes, %d fails, %d communicator size)\n", 
+    printf("%d - Finalizing (%d successful barriers, %d revokes, %d fails, %d communicator size)\n",
                         rank, successes, revokes, fails, size);
 
     /* We'll reach here when only 0 is left */
