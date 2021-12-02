@@ -1,6 +1,24 @@
+/* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
+/*
+ * Copyright (c) 2013-2021 The University of Tennessee and The University
+ *                         of Tennessee Research Foundation.  All rights
+ *                         reserved.
+ * $COPYRIGHT$
+ *
+ * Additional copyrights may follow
+ *
+ * $HEADER$
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <mpi.h>
+
+/* This test stresses that the failure detector remains accurate under
+ * conditions in which MPI progress is sparse. We add sleeps timers to
+ * simulate periods in which the application would be busy computing and would
+ * not call any MPI procedures for a while.
+ */
 
 static void compute(int how_long);
 
@@ -14,8 +32,8 @@ int main(int argc, char* argv[]) {
      * iteration, one per process per iteration) */
     int left = MPI_PROC_NULL, right = MPI_PROC_NULL;
     int rank = MPI_PROC_NULL, size = 0;
-    int tag = 42, iterations = 10, how_long = 5;
-    MPI_Request req = MPI_REQUEST_NULL;
+    int tag = 42, iterations = 12, how_long = 5;
+    MPI_Request reqs[2] = { MPI_REQUEST_NULL };
     double post_date, wait_date, complete_date;
 
     MPI_Init(&argc, &argv);
@@ -24,21 +42,34 @@ int main(int argc, char* argv[]) {
     left = (rank+size-1)%size; /* left ring neighbor in circular space */
     right = (rank+size+1)%size; /* right ring neighbor in circular space */
 
+    if( argc > 1 ) {
+        how_long = atoi(argv[1]);
+    }
+    if( argc > 2) {
+        iterations = atoi(argv[2]);
+    }
+
 /**** Done with initialization, main loop now ************************/
-    printf("Entering test; computing silently for %d seconds\n", how_long);
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(0 == rank) printf("Entering test; computing silently for %d seconds\n", how_long);
+
     for(int i = 0; i < iterations; i++) {
       MPI_Barrier(MPI_COMM_WORLD);
       post_date = MPI_Wtime();
-      MPI_Irecv(recv_buff, 512, MPI_INT, left, tag, MPI_COMM_WORLD, &req);
-      MPI_Send (send_buff, 512, MPI_INT, right, tag, MPI_COMM_WORLD);
+      MPI_Irecv(recv_buff, 512, MPI_INT, left, tag, MPI_COMM_WORLD, &reqs[0]);
+      MPI_Isend(send_buff, 512, MPI_INT, right, tag, MPI_COMM_WORLD, &reqs[1]);
       compute(how_long);
       wait_date = MPI_Wtime();
-      MPI_Wait(&req, MPI_STATUS_IGNORE);
+      MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
       complete_date = MPI_Wtime();
-      printf("Worked %g seconds before entering MPI_Wait and spend %g seconds waiting\n", 
-             wait_date - post_date, 
+      printf("%02d\tIteration %02d of %d\tWorked %g (s)\tMPI_Wait-ed %g (s)\n",
+             rank, i, iterations,
+             wait_date - post_date,
              complete_date - wait_date);
     }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(0 == rank) printf("No spurious faults were detected: COMPLIANT\n");
 
     MPI_Finalize();
     return 0;
