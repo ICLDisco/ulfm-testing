@@ -10,6 +10,11 @@
  * $HEADER$
  */
 
+/* This test is designed to test if MPI_COMM_SPAWN works correctly. It will
+ * test if we can spawn without faults, that it won't crash/deadlock with faults,
+ * and that it resumes working after we recovered the fault.
+ */
+
 #include <mpi.h>
 #include <mpi-ext.h>
 #include <stdio.h>
@@ -73,7 +78,7 @@ int main(int argc, char *argv[]) {
         MPI_Comm_disconnect(&icomm);
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    if(0 == rank) printf("Parents completed MPI_COMM_SPAWN with %s\n", arg_array[0]);
+    if(0 == rank) printf("Parents completed MPI_COMM_SPAWN with %s\n\n", arg_array[0]);
 
 
 #if 0
@@ -106,7 +111,7 @@ int main(int argc, char *argv[]) {
     }
     /* Now use agree because Barrier is 'broken' by the fault */
     MPIX_Comm_agree(MPI_COMM_WORLD, &flag);
-    if(0 == rank) printf("Parents completed MPI_COMM_SPAWN with %s\n", arg_array[0]);
+    if(0 == rank) printf("Parents completed MPI_COMM_SPAWN with %s\n\n", arg_array[0]);
 
     sleep(1);
 
@@ -156,7 +161,7 @@ int main(int argc, char *argv[]) {
     }
     /* Now use agree because Barrier is 'broken' by the fault */
     MPIX_Comm_agree(MPI_COMM_WORLD, &flag);
-    if(0 == rank) printf("Parents completed MPI_COMM_SPAWN with %s\n", arg_array[0]);
+    if(0 == rank) printf("Parents completed MPI_COMM_SPAWN with %s\n\n", arg_array[0]);
 
 
 
