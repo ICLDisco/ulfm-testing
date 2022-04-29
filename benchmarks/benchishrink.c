@@ -89,7 +89,7 @@ static int buddycr(MPI_Comm comm, char *data, char *ckpt, int count, int i) {
 
 int main(int argc, char *argv[])
 {
-    int rank, size;
+    int rank, np;
     int c, i, s;
     int common, flag, ret;
     unsigned int seed = 1789;
@@ -112,9 +112,9 @@ int main(int argc, char *argv[])
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_size(MPI_COMM_WORLD, &np);
 
-    faults = (int*)calloc(size, sizeof(int));
+    faults = (int*)calloc(np, sizeof(int));
 
     while(1) {
         static struct option long_options[] = {
@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
     for(i = 0; i < mf; i++) {
         do {
             ret = rand();
-            ret = ret % size;
+            ret = ret % np;
             if(!faults[ret]) {
                 faults[ret] = 1;
                 break;
@@ -207,6 +207,14 @@ int main(int argc, char *argv[])
         if( ret != MPI_SUCCESS ) {
             fprintf(stderr, "Correctness error: shrink should never fail. It returned %d to rank %d\n",
                     ret, rank);
+        }
+        for(s = 0; s < simultaneous; s++) {
+            int snp;
+            MPI_Comm_size(comms[i+simultaneous*s], &snp);
+            if( snp != np ) {
+                fprintf(stderr, "Correctness error: shrink(before) should not have eliminated any proc. New size is %d (should be %d)\n",
+                        snp, np);
+            }
         }
     }
 
