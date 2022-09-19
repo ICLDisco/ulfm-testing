@@ -51,10 +51,7 @@ int main(int argc, char *argv[]) {
                 if( MPIX_ERR_PROC_FAILED != eclass ) {
                     MPI_Abort(MPI_COMM_WORLD, rc);
                 }
-                MPIX_Comm_failure_ack(MPI_COMM_WORLD);
-                MPIX_Comm_failure_get_acked(MPI_COMM_WORLD, &group_f);
-                MPI_Group_size(group_f, &nf);
-                MPI_Group_free(&group_f);
+                MPIX_Comm_ack_failed(MPI_COMM_WORLD, size, &nf);
                 printf("Failures detected! %d found so far\n", nf);
             }
         }
