@@ -72,16 +72,20 @@ static const int ckpt_tag = 42;
 static int buddycr(MPI_Comm comm, char *data, char *ckpt, int count, int i) {
     int rank;
     int np;
+    double start, stop;
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &np);
 #define lbuddy(r) ((r+np-1)%np)
 #define rbuddy(r) ((r+np+1)%np)
-    if(0 == rank || verbose) fprintf(stderr, "Rank %04d: checkpointing to %04d after iteration %d\n", rank, rbuddy(rank), i);
 
+    start = MPI_Wtime();
     /* Store my checkpoint on my "right" neighbor */
-    return MPI_Sendrecv(data, count, MPI_CHAR, rbuddy(rank), ckpt_tag,
-                ckpt,   count, MPI_CHAR, lbuddy(rank), ckpt_tag,
-                comm, MPI_STATUS_IGNORE);
+    int rc = MPI_Sendrecv(data, count, MPI_CHAR, rbuddy(rank), ckpt_tag,
+                          ckpt, count, MPI_CHAR, lbuddy(rank), ckpt_tag,
+                          comm, MPI_STATUS_IGNORE);
+    stop = MPI_Wtime();
+    if(0 == rank || verbose) fprintf(stderr, "Rank %04d: checkpointing to %04d after iteration %d took %g\n", rank, rbuddy(rank), i, stop-start);
+    return rc;
 }
 
 
@@ -107,7 +111,7 @@ int main(int argc, char *argv[])
     char *data = NULL;
     char *ckpt = NULL;
 
-    double start, dfailure;
+    double start, dfailure, dckpt;
     stat_t sbefore, safter, sstab;
 
     MPI_Init(&argc, &argv);
@@ -188,7 +192,7 @@ int main(int argc, char *argv[])
         } while(1);
     }
 
-    MPI_Comm_set_errhandler(MPI_COMM_WORLD,MPI_ERRORS_RETURN);
+    MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 
     for(i = 0; i < simultaneous; i++) {
         MPI_Comm_dup(MPI_COMM_WORLD, &worlds[i]);
@@ -201,7 +205,7 @@ int main(int argc, char *argv[])
         for(s = 0; s < simultaneous; s++) {
             ret = MPIX_Comm_ishrink(worlds[s], &comms[i+simultaneous*s], &reqs[s]);
         }
-        if(0 < ckptsize) buddycr(worlds[s], data, ckpt, ckptsize, i);
+        if(0 < ckptsize) buddycr(worlds[0], data, ckpt, ckptsize, i);
         MPI_Waitall(simultaneous, reqs, MPI_STATUSES_IGNORE);
         stat_record(&sbefore, MPI_Wtime() - start);
         if( ret != MPI_SUCCESS ) {
@@ -211,8 +215,10 @@ int main(int argc, char *argv[])
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-    printf("BEFORE_FAILURE %g s (stdev %g ) per shrink on rank %d (average over %d shrinks)\n",
+    if(before) {
+        printf("BEFORE_FAILURE %g s (stdev %g ) per shrink on rank %d (average over %d shrinks)\n",
            stat_get_mean(&sbefore), stat_get_stdev(&sbefore), rank, stat_get_nbsamples(&sbefore));
+    }
 
     MPI_Barrier(MPI_COMM_WORLD);
     if( faults[rank] ) {
@@ -229,7 +235,8 @@ int main(int argc, char *argv[])
     for(s = 0; s < simultaneous; s++) {
        ret = MPIX_Comm_ishrink(worlds[s], &comms[before+simultaneous*s], &reqs[s]);
     }
-    if(0 < ckptsize) buddycr(worlds[s], data, ckpt, ckptsize, i);
+    if(0 < ckptsize) buddycr(worlds[0], data, ckpt, ckptsize, i);
+    dckpt = MPI_Wtime() - start;
     MPI_Waitall(simultaneous, reqs, MPI_STATUSES_IGNORE);
     dfailure = MPI_Wtime() - start;
     if( ret != MPI_SUCCESS ) {
@@ -240,11 +247,13 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Rank %d out of first shrink after failure; ret = %d\n", rank, ret);
     }
 
+    MPIX_Comm_agree(MPI_COMM_WORLD, &flag);
+
     start = MPI_Wtime();
     for(s = 0; s < simultaneous; s++) {
        ret = MPIX_Comm_ishrink(worlds[s], &comms[before+1+simultaneous*s], &reqs[s]);
     }
-    if(0 < ckptsize) buddycr(worlds[s], data, ckpt, ckptsize, i);
+    if(0 < ckptsize) buddycr(comms[before], data, ckpt, ckptsize, i);
     MPI_Waitall(simultaneous, reqs, MPI_STATUSES_IGNORE);
     stat_record(&sstab, MPI_Wtime()-start);
     if( ret != MPI_SUCCESS ) {
@@ -252,7 +261,7 @@ int main(int argc, char *argv[])
                 ret, rank);
     }
 
-    printf("FIRST_SHRINK_AFTER_FAILURE %g s to do that shrink on rank %d\n", dfailure, rank);
+    printf("FIRST_SHRINK_AFTER_FAILURE %g s to do that shrink on rank %d (%g is checkpoint)\n", dfailure, rank, dckpt);
     printf("REBALANCE_SHRINK %g s to do that shrink on rank %d\n", stat_get_mean(&sstab), rank);
 
     sleep(1);
@@ -263,7 +272,7 @@ int main(int argc, char *argv[])
         for(s = 0; s < simultaneous; s++) {
             ret = MPIX_Comm_ishrink(worlds[s], &comms[i+before+2+simultaneous*s], &reqs[s]);
         }
-        if(0 < ckptsize) buddycr(worlds[s], data, ckpt, ckptsize, i);
+        if(0 < ckptsize) buddycr(comms[before], data, ckpt, ckptsize, i);
         MPI_Waitall(simultaneous, reqs, MPI_STATUSES_IGNORE);
         stat_record(&safter, MPI_Wtime() - start);
         if( ret != MPI_SUCCESS ) {
@@ -272,11 +281,13 @@ int main(int argc, char *argv[])
         }
     }
 
-    printf("AFTER_FAILURE %g s (stdev %g ) per shrink on rank %d (average over %d shrinks) -- Precision is %g\n",
+    if(after) {
+        printf("AFTER_FAILURE %g s (stdev %g ) per shrink on rank %d (average over %d shrinks) -- Precision is %g\n",
                stat_get_mean(&safter), stat_get_stdev(&safter), rank, stat_get_nbsamples(&safter), MPI_Wtick());
 
-    for(i = 0; i < safter.n && i < safter.ks; i++) {
-        printf("%d %g\n", rank, safter.samples[i]);
+        if(verbose) for(i = 0; i < safter.n && i < safter.ks; i++) {
+            printf("%d %g\n", rank, safter.samples[i]);
+        }
     }
 
 #if 0
