@@ -34,6 +34,34 @@ int main( int argc, char* argv[] ) {
     MPI_Comm_set_errhandler( MPI_COMM_WORLD, MPI_ERRORS_RETURN );
     MPI_Comm_dup( MPI_COMM_WORLD, &commw );
 
+    /* Test with no failures */
+    MPIX_Comm_get_failed( commw, &gf );
+    if( MPI_GROUP_EMPTY != gf ) {
+        kf = MPI_Group_size( gf, &kf );
+        fprintf( stderr, "Rank %02d: TEST FAILED! The group of failed processes should be empty. At least %d failure should have been reported though\n", rank, kf );
+        sleep(1);
+        MPI_Abort( MPI_COMM_WORLD, -1 );
+    }
+    MPI_Group_free( &gf );
+    MPIX_Comm_ack_failed( commw, np, &kf );
+    MPIX_Comm_ack_failed( commw, 0, &kf );
+    if( 0 != kf ) {
+        fprintf( stderr, "Rank %02d: TEST FAILED! The group of failed processes should be empty. At least %d failure should have been reported though\n", rank, kf );
+        sleep(1);
+        MPI_Abort( MPI_COMM_WORLD, -1 );
+    }
+    /* Same with old API */
+    MPIX_Comm_failure_ack( commw );
+    MPIX_Comm_failure_get_acked( commw, &gf );
+    if( MPI_GROUP_EMPTY != gf ) {
+        MPI_Group_size( gf, &kf );
+        fprintf( stderr, "Rank %02d: TEST FAILED! The group of failed processes should be empty. At least %d failure should have been reported though\n", rank, kf );
+        sleep(1);
+        MPI_Abort( MPI_COMM_WORLD, -1 );
+    }
+    MPI_Group_free( &gf );
+    printf( "Rank %02d: TEST PASSED  The group of failed processes is GROUP_EMPTY / %d.\n", rank, kf );
+
     /* Inject a failure */
     if( rank == np-1 ) {
         printf( "Rank %d: SEPUKU\n", rank );
