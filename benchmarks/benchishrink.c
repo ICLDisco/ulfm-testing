@@ -114,6 +114,7 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &np);
 
+#if OMPI_HAVE_MPIX_COMM_ISHRINK
     faults = (int*)calloc(np, sizeof(int));
 
     while(1) {
@@ -295,6 +296,9 @@ int main(int argc, char *argv[])
     for(i = 0; i < simultaneous; i++) {
         MPI_Comm_free(&worlds[i]);
     }
+#else /* OMPI_HAVE_MPIX_COMM_ISHRINK */
+    printf("THIS IMPLEMENTATION DOESN'T HAVE MPIX_COMM_ISHRINK!\n");
+#endif /* OMPI_HAVE_MPIX_COMM_ISHRINK */
     MPI_Finalize();
 
     return 0;
