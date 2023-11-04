@@ -7,7 +7,7 @@ can be found either on http://fault-tolerance.org or in the GitHub
 repository at https://github.com/ICLDisco/ulfm-testing.
 
 More information on this package and how to use it is available from
-[fault-tolerance.org/sc21](http://fault-tolerance.org/sc21).
+[fault-tolerance.org/sc23](http://fault-tolerance.org/sc23).
 
 This hands-on demonstrates how to use User Level Failure Mitigation
 (ULFM) MPI to design typical application fault-tolerance patterns.
@@ -102,7 +102,7 @@ ulfm@googlegroups.com.
 
 ----------------------------------------------------------------------------
 
-Copyright (c) 2009-2021 The University of Tennessee and The University
+Copyright (c) 2009-2023 The University of Tennessee and The University
                         of Tennessee Research Foundation.  All rights
                         reserved.
 
