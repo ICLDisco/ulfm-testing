@@ -26,25 +26,25 @@ case _$1 in
     _|_load)
         docker pull $ulfm_image
         function make {
-            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disabled -v $PWD:/sandbox $ulfm_image make $@
+            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disable -v $PWD:/sandbox $ulfm_image make $@
         }
         function ompi_info {
             docker run --user $(id -u):$(id -g) --cap-drop=all $ulfm_image ompi_info $@
         }
         function mpirun {
-            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disabled -v $PWD:/sandbox $ulfm_image mpirun --map-by :oversubscribe --mca btl tcp,self $@
+            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disable -v $PWD:/sandbox $ulfm_image mpirun --map-by :oversubscribe --mca btl tcp,self $@
         }
         function mpiexec {
-            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disabled -v $PWD:/sandbox $ulfm_image mpiexec --map-by :oversubscribe --mca btl tcp,self $@
+            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disable -v $PWD:/sandbox $ulfm_image mpiexec --map-by :oversubscribe --mca btl tcp,self $@
         }
         function mpiexec+gdb {
-            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disabled -v $PWD:/sandbox --cap-add=SYS_PTRACE --security-opt seccomp=unconfined $ulfm_image mpiexec --map-by :oversubscribe --mca btl tcp,self $@
+            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disable -v $PWD:/sandbox --cap-add=SYS_PTRACE --security-opt seccomp=unconfined $ulfm_image mpiexec --map-by :oversubscribe --mca btl tcp,self $@
         }
         function mpicc {
-            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disabled -v $PWD:/sandbox $ulfm_image mpicc $@
+            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disable -v $PWD:/sandbox $ulfm_image mpicc $@
         }
         function mpif90 {
-            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disabled -v $PWD:/sandbox $ulfm_image mpif90 $@
+            docker run --user $(id -u):$(id -g) --cap-drop=all --security-opt label:disable -v $PWD:/sandbox $ulfm_image mpif90 $@
         }
         echo "#  Function alias set for 'make', 'mpirun', 'mpiexec', 'mpicc', 'mpif90'."
         echo "source dockervars.sh unload # remove these aliases."

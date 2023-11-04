@@ -17,12 +17,12 @@ switch(_$1)
     case _:
     case _load:
         docker pull $image
-        alias make 'docker run --user `id -u`:`id -g` --cap-drop=all --security-opt label:disabled -v ${PWD}:/sandbox $image make'
+        alias make 'docker run --user `id -u`:`id -g` --cap-drop=all --security-opt label:disable -v ${PWD}:/sandbox $image make'
         alias ompi_info 'docker run --user `id -u`:`id -g` --cap-drop=all $image ompi_info'
-        alias mpirun 'docker run --user `id -u`:`id -g` --cap-drop=all --security-opt label:disabled -v ${PWD}:/sandbox $image mpirun --map-by :oversubscribe --mca btl tcp,self'
-        alias mpiexec 'docker run --user `id -u`:`id -g` --cap-drop=all --security-opt label:disabled -v ${PWD}:/sandbox $image mpiexec --map-by :oversubscribe --mca btl tcp,self'
-        alias mpicc 'docker run --user `id -u`:`id -g` --cap-drop=all --security-opt label:disabled -v ${PWD}:/sandbox $image mpicc'
-        alias mpif90 'docker run --user `id -u`:`id -g` --cap-drop=all --security-opt label:disabled -v ${PWD}:/sandbox $image mpif90'
+        alias mpirun 'docker run --user `id -u`:`id -g` --cap-drop=all --security-opt label:disable -v ${PWD}:/sandbox $image mpirun --map-by :oversubscribe --mca btl tcp,self'
+        alias mpiexec 'docker run --user `id -u`:`id -g` --cap-drop=all --security-opt label:disable -v ${PWD}:/sandbox $image mpiexec --map-by :oversubscribe --mca btl tcp,self'
+        alias mpicc 'docker run --user `id -u`:`id -g` --cap-drop=all --security-opt label:disable -v ${PWD}:/sandbox $image mpicc'
+        alias mpif90 'docker run --user `id -u`:`id -g` --cap-drop=all --security-opt label:disable -v ${PWD}:/sandbox $image mpif90'
         echo "#  Function alias set for 'make', 'mpirun', 'mpiexec', 'mpicc', 'mpif90'."
         echo "source $name unload # remove these aliases."
         echo "#    These commands now run from the ULFM Docker image."
