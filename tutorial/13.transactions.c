@@ -107,11 +107,14 @@ int main( int argc, char* argv[] )
             rc = MPI_Barrier(newcomm);
 
         } CATCH_BLOCK(newcomm) {
+            printf("Rank %d/%d catch the inner-loop block\n", rank, size);
         } END_BLOCK()
 
     } CATCH_BLOCK(MPI_COMM_WORLD) {
+        printf("Rank %d/%d catch the outer-loop block\n", rank, size);
     } END_BLOCK()
 
+    MPI_Comm_free(&newcomm);
     libtran_fini();
     MPI_Finalize();
 }
